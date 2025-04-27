@@ -82,8 +82,6 @@ ASGI_APPLICATION = "wiperino.asgi.application"
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        # TODO: Po instalacji Redisa zmień BACKEND na RedisChannelLayer
-        # i ustaw CONFIG z adresem Redisa.
         # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
         # 'CONFIG': {
         #     "hosts": [("127.0.0.1", 6379)],
