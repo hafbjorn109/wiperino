@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+MODE_CHOICES = [
+    ('SPEEDRUN', 'Speedrun'),
+    ('WIPECOUNTER', 'Wipe Counter'),
+]
 
 class Run(models.Model):
     """
@@ -9,7 +13,7 @@ class Run(models.Model):
     """
     name = models.CharField(max_length=50)
     game = models.CharField(max_length=50)
-    mode = models.CharField(max_length=50)
+    mode = models.CharField(choices=MODE_CHOICES, max_length=30)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_finished = models.BooleanField(default=False)
     session_code = models.CharField(max_length=15)
