@@ -11,7 +11,7 @@ class Run(models.Model):
     game = models.CharField(max_length=50)
     mode = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    status = models.BooleanField(default=False)
+    is_finished = models.BooleanField(default=False)
     session_code = models.CharField(max_length=15)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -27,6 +27,8 @@ class WipeCounter(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     segment_name = models.CharField(max_length=50)
     count = models.IntegerField(default=0)
+    is_finished = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f'{self.run.name} | {self.segment_name}'
@@ -40,6 +42,7 @@ class Timer(models.Model):
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
     segment_name = models.CharField(max_length=50)
     elapsed_time = models.FloatField(null=True, blank=True)
+    is_finished = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.run.name} | {self.segment_name}'
