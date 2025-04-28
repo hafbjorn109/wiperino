@@ -16,7 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from playerhub import views as playerhub_views
+from livehub import views as livehub_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('runs/', playerhub_views.RunListView.as_view(), name='runs'),
+    path('runs/<int:pk>', playerhub_views.RunView.as_view(), name='run'),
+    path('wipecounters/', playerhub_views.WipeCounterListView.as_view(), name='wipecounters'),
+    path('wipecounters/<int:pk>', playerhub_views.WipeCounterView.as_view(), name='wipecounter'),
+    path('timers/', playerhub_views.TimerListView.as_view(), name='timers'),
+    path('timers/<int:pk>', playerhub_views.TimerView.as_view(), name='timer'),
+    path('polls/', livehub_views.PollListView.as_view(), name='polls'),
+    path('polls/<int:pk>', livehub_views.PollView.as_view(), name='poll'),
+    path('answers/', livehub_views.AnswerListView.as_view(), name='answers'),
+    path('answers/<int:pk>', livehub_views.AnswerView.as_view(), name='answer'),
 ]

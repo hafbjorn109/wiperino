@@ -6,6 +6,7 @@ class PollSerializer(serializers.ModelSerializer):
     Serializer for the Poll model.
     Handles creation and retrieval of poll instances.
     """
+    run = serializers.SlugRelatedField(slug_field='name', read_only=True)
     class Meta:
         model = Poll
         fields = '__all__'
