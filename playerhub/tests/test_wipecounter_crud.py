@@ -15,7 +15,6 @@ def test_add_wipecounter(client):
         'is_finished': False,
     }
     response = client.post(f'/runs/{run.id}/wipecounters/', data, format='json')
-    print(response.data)
     assert response.status_code == 201, 'WipeCounter was not created'
     assert WipeCounter.objects.count() == wipecounters_count + 1, 'WipeCounter was not created'
 

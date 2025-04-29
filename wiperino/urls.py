@@ -21,14 +21,24 @@ from livehub import views as livehub_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     path('runs/', playerhub_views.RunListView.as_view(), name='runs'),
     path('runs/<int:pk>/', playerhub_views.RunView.as_view(), name='run'),
+
     path('runs/<int:run_id>/wipecounters/', playerhub_views.WipeCounterListView.as_view(), name='wipecounters'),
     path('runs/<int:run_id>/wipecounters/<int:wipecounter_id>/', playerhub_views.WipeCounterView.as_view(), name='wipecounter'),
+
     path('runs/<int:run_id>/timers/', playerhub_views.TimerListView.as_view(), name='timers'),
     path('runs/<int:run_id>/timers/<int:timer_id>/', playerhub_views.TimerView.as_view(), name='timer'),
-    path('polls/', livehub_views.PollListView.as_view(), name='polls'),
-    path('polls/<int:pk>/', livehub_views.PollView.as_view(), name='poll'),
-    path('polls/<int:poll_id>/answers/', livehub_views.AnswerListView.as_view(), name='answers'),
-    path('polls/<int:poll_id>/answers/<int:answer_id>/', livehub_views.AnswerView.as_view(), name='answer'),
+
+    path('polls/mod/<str:moderator_session_code>/', livehub_views.ModeratorPollListView.as_view(), name='polls-moderator'),
+    path('polls/mod/<str:moderator_session_code>/<int:poll_id>/', livehub_views.ModeratorPollView.as_view(), name='poll-moderator'),
+
+    path('polls/<str:session_code>/', livehub_views.ViewerPollListView.as_view(), name='polls'),
+
+    path('polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/', livehub_views.ModeratorAnswerListView.as_view(), name='answers-moderator'),
+    path('polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/<int:answer_id>/', livehub_views.ModeratorAnswerView.as_view(), name='answer-moderator'),
+
+    path('polls/<str:session_code>/<int:poll_id>/answers/', livehub_views.ViewerAnswerListView.as_view(), name='answers'),
+
 ]

@@ -2,6 +2,7 @@ import pytest
 from .factories import UserFactory, RunFactory, TimerFactory
 from playerhub.models import Timer
 
+
 @pytest.mark.django_db
 def test_add_timer(client):
     timers_count = Timer.objects.count()
@@ -17,6 +18,7 @@ def test_add_timer(client):
     assert response.status_code == 201, 'Timer was not created'
     assert Timer.objects.count() == timers_count + 1, 'Timer was not created'
 
+
 @pytest.mark.django_db
 def test_add_timer_not_logged_in(client):
     user = UserFactory()
@@ -28,6 +30,7 @@ def test_add_timer_not_logged_in(client):
     }
     response = client.post(f'/runs/{run.id}/timers/', data, format='json')
     assert response.status_code == 403, 'User should be not authenticated'
+
 
 @pytest.mark.django_db
 def test_add_timer_for_foreign_user(client):
@@ -42,6 +45,7 @@ def test_add_timer_for_foreign_user(client):
     response = client.post(f'/runs/{run.id}/timers/', data, format='json')
     assert response.status_code == 404, 'User should not be able to add foreign user timer'
 
+
 @pytest.mark.django_db
 def test_get_timers(client):
     user = UserFactory()
@@ -55,6 +59,7 @@ def test_get_timers(client):
     for timer in response.data:
         assert timer['run'] == run.name, 'User should see only his timers'
 
+
 @pytest.mark.django_db
 def test_get_timers_not_logged_in(client):
     user = UserFactory()
@@ -62,6 +67,7 @@ def test_get_timers_not_logged_in(client):
     TimerFactory.create_batch(5, run=run)
     response = client.get(f'/runs/{run.id}/timers/', {}, format='json')
     assert response.status_code == 403, 'User should be not authenticated'
+
 
 @pytest.mark.django_db
 def test_change_timer(client):
@@ -76,6 +82,7 @@ def test_change_timer(client):
     assert response.status_code == 200, 'Timer was not changed'
     assert response.data['segment_name'] == change_data['segment_name'], 'Timer was not changed'
 
+
 @pytest.mark.django_db
 def test_change_not_logged_in_timer(client):
     user = UserFactory()
@@ -86,6 +93,7 @@ def test_change_not_logged_in_timer(client):
     }
     response = client.patch(f'/runs/{run.id}/timers/{timer.id}/', change_data, format='json')
     assert response.status_code == 403, 'User should be not authenticated'
+
 
 @pytest.mark.django_db
 def test_change_foreign_user_timer(client):
@@ -99,6 +107,7 @@ def test_change_foreign_user_timer(client):
     response = client.patch(f'/runs/{run.id}/timers/{timer.id}/', change_data, format='json')
     assert response.status_code == 404, 'User should not be able to change foreign user timer'
 
+
 @pytest.mark.django_db
 def test_delete_timer(client):
     user = UserFactory()
@@ -108,6 +117,7 @@ def test_delete_timer(client):
     response = client.delete(f'/runs/{run.id}/timers/{timer.id}/')
     assert response.status_code == 204, 'Timer was not deleted correctly'
 
+
 @pytest.mark.django_db
 def test_delete_not_logged_in_timer(client):
     user = UserFactory()
@@ -115,6 +125,7 @@ def test_delete_not_logged_in_timer(client):
     timer = TimerFactory(run=run)
     response = client.delete(f'/runs/{run.id}/timers/{timer.id}/')
     assert response.status_code == 403, 'User should be not authenticated'
+
 
 @pytest.mark.django_db
 def test_delete_foreign_user_timer(client):

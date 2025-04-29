@@ -1,7 +1,6 @@
 from django.db import models
 from playerhub.models import Run
 
-# Create your models here.
 
 class Poll(models.Model):
     """
@@ -15,6 +14,7 @@ class Poll(models.Model):
 
     def __str__(self):
         return self.question
+
 
 class Answer(models.Model):
     """

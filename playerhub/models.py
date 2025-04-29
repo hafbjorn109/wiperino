@@ -16,7 +16,8 @@ class Run(models.Model):
     mode = models.CharField(choices=MODE_CHOICES, max_length=30)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_finished = models.BooleanField(default=False)
-    session_code = models.CharField(max_length=15)
+    session_code = models.CharField(max_length=15, null=True, blank=True)
+    moderator_session_code = models.CharField(max_length=15, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
