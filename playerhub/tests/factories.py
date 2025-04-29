@@ -41,7 +41,7 @@ class TimerFactory(factory.django.DjangoModelFactory):
 
     run = factory.SubFactory(RunFactory)
     segment_name = factory.Faker('word')
-    elapsed_time = factory.Faker('pyfloat', positive=True, right_digits=2, min_value=0, max_value=9999)
+    elapsed_time = factory.Faker('pyfloat', right_digits=2, min_value=0, max_value=9999)
     is_finished = factory.Faker('boolean', chance_of_getting_true=20)
 
 

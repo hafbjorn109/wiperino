@@ -65,8 +65,14 @@ class TimerListView(generics.ListCreateAPIView):
     API view to retrieve list of timers or create a new timer.
     """
     permission_classes = [IsAuthenticated]
-    queryset = Timer.objects.all()
     serializer_class = TimerSerializer
+
+    def get_queryset(self):
+        return Timer.objects.filter(run__id = self.kwargs['run_id'], run__user=self.request.user)
+
+    def perform_create(self, serializer):
+        run = get_object_or_404(Run, id=self.kwargs['run_id'], user=self.request.user)
+        serializer.save(run=run)
 
 
 class TimerView(generics.RetrieveUpdateDestroyAPIView):
@@ -74,5 +80,11 @@ class TimerView(generics.RetrieveUpdateDestroyAPIView):
     API view to retrieve, update, or delete a specific timer.
     """
     permission_classes = [IsAuthenticated]
-    queryset = Timer.objects.all()
     serializer_class = TimerSerializer
+
+    def get_object(self):
+        return get_object_or_404(
+            Timer.objects.filter(
+            run__id = self.kwargs['run_id'],
+            run__user= self.request.user
+        ), id=self.kwargs['timer_id'])

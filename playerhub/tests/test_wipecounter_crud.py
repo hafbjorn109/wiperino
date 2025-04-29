@@ -30,7 +30,6 @@ def test_not_logged_in_user_add_wipecounter(client):
         'is_finished': False,
     }
     response = client.post(f'/runs/{run.id}/wipecounters/', data, format='json')
-    print(response.data)
     assert response.status_code == 403, 'User should be not authenticated'
 
 @pytest.mark.django_db
