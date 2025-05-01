@@ -14,7 +14,7 @@ def test_add_poll_moderator(client):
         'question': 'Test Question',
         'published': True
     }
-    response = client.post(f'/polls/mod/{run.moderator_session_code}/',
+    response = client.post(f'/api/polls/mod/{run.moderator_session_code}/',
                            data, format='json')
     assert response.status_code == 201, 'Poll was not created'
     assert Poll.objects.count() == polls_count + 1, 'Poll was not created'
@@ -28,7 +28,7 @@ def test_get_polls_moderator(client):
     PollFactory.create_batch(5, run=run)
     PollFactory.create_batch(4)
     response = client.get(
-        f'/polls/mod/{run.moderator_session_code}/',
+        f'/api/polls/mod/{run.moderator_session_code}/',
         {}, format='json')
     assert response.status_code == 200, 'Polls were not retrieved'
     assert len(response.data) == 5, \
@@ -44,7 +44,7 @@ def test_get_polls_viewers(client):
     run = RunFactory(user=user)
     PollFactory.create_batch(5, run=run)
     PollFactory.create_batch(4)
-    response = client.get(f'/polls/{run.session_code}/', {}, format='json')
+    response = client.get(f'/api/polls/{run.session_code}/', {}, format='json')
     assert response.status_code == 200, 'Polls were not retrieved'
     assert len(response.data) == 5, \
         'User should see only polls from particular Run'
@@ -62,7 +62,7 @@ def test_change_poll_moderator(client):
         'question': 'New Poll Question',
     }
     response = client.patch(
-        f'/polls/mod/{run.moderator_session_code}/{poll.id}/',
+        f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/',
         change_data, format='json')
     assert response.status_code == 200, 'Poll was not changed'
     assert response.data['question'] == change_data['question'], \
@@ -76,7 +76,7 @@ def test_delete_poll_moderator(client):
     run = RunFactory(user=user)
     poll = PollFactory(run=run)
     response = client.delete(
-        f'/polls/mod/{run.moderator_session_code}/{poll.id}/',
+        f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/',
         format='json')
     assert response.status_code == 204, \
         'Poll was not deleted correctly'

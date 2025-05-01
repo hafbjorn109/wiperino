@@ -16,7 +16,7 @@ def test_add_answer_moderator(client):
         'votes': 25
     }
     response = client.post(
-        f'/polls/mod/{run.moderator_session_code}/{poll.id}/answers/', data,
+        f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/answers/', data,
         format='json')
 
     assert response.status_code == 201, 'Answer was not created'
@@ -33,7 +33,7 @@ def test_get_answers_moderator(client):
     AnswerFactory.create_batch(5, poll=poll)
     AnswerFactory.create_batch(4)
     response = client.get(
-        f'/polls/mod/{run.moderator_session_code}/{poll.id}/answers/',
+        f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/answers/',
         {}, format='json')
     assert response.status_code == 200, 'Answers were not retrieved'
     assert len(response.data) == 5, \
@@ -52,7 +52,7 @@ def test_get_answers_viewer(client):
     AnswerFactory.create_batch(5, poll=poll)
     AnswerFactory.create_batch(4)
     response = client.get(
-        f'/polls/{run.session_code}/{poll.id}/answers/',
+        f'/api/polls/{run.session_code}/{poll.id}/answers/',
         {}, format='json')
     assert response.status_code == 200, \
         'Answers were not retrieved'
@@ -75,7 +75,7 @@ def test_change_answer_moderator(client):
         'votes': 25
     }
     response = client.patch(
-        f'/polls/mod/{run.moderator_session_code}/{poll.id}/answers/{answer.id}/',
+        f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/answers/{answer.id}/',
         change_data, format='json')
     assert response.status_code == 200, 'Answer was not changed'
     assert response.data['answer'] == change_data['answer'], \
@@ -90,7 +90,7 @@ def test_delete_answer_moderator(client):
     poll = PollFactory(run=run)
     answer = AnswerFactory(poll=poll)
     response = client.delete(
-        f'/polls/mod/{run.moderator_session_code}/{poll.id}/answers/{answer.id}/',
+        f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/answers/{answer.id}/',
         format='json')
     assert response.status_code == 204, \
         'Answer was not deleted correctly'
