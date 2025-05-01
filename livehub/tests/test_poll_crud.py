@@ -6,6 +6,12 @@ from livehub.models import Poll
 
 @pytest.mark.django_db
 def test_add_poll_moderator(client):
+    """
+    Test to ensure that a moderator can create a poll for a run.
+
+    Sends a POST request with poll data using the moderator session code.
+    Expects a 201 Created response and a new poll in the database.
+    """
     polls_count = Poll.objects.count()
     user = UserFactory()
     client.force_authenticate(user=user)
@@ -22,6 +28,12 @@ def test_add_poll_moderator(client):
 
 @pytest.mark.django_db
 def test_get_polls_moderator(client):
+    """
+    Test to ensure that a moderator can retrieve polls for their run.
+
+    Creates polls for the user's run and other runs.
+    Sends a GET request with moderator session code and expects only relevant polls.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -39,6 +51,12 @@ def test_get_polls_moderator(client):
 
 @pytest.mark.django_db
 def test_get_polls_viewers(client):
+    """
+    Test to ensure that viewers can retrieve public polls for a run.
+
+    Uses the public session code to access published polls.
+    Expects only polls related to the specific run.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -54,6 +72,12 @@ def test_get_polls_viewers(client):
 
 @pytest.mark.django_db
 def test_change_poll_moderator(client):
+    """
+    Test to ensure that a moderator can update their own poll.
+
+    Sends a PATCH request with updated data using moderator session code.
+    Expects a 200 OK response and updated poll data.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -71,6 +95,12 @@ def test_change_poll_moderator(client):
 
 @pytest.mark.django_db
 def test_delete_poll_moderator(client):
+    """
+    Test to ensure that a moderator can delete a poll they created.
+
+    Sends a DELETE request using moderator session code.
+    Expects a 204 No Content response and poll removal.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)

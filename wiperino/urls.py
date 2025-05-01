@@ -53,8 +53,8 @@ urlpatterns = [
     path('api/polls/<str:session_code>/<int:poll_id>/answers/',
          livehub_views.ViewerAnswerListView.as_view(), name='api-answers'),
 
-    path('api/register', users_views.RegisterView.as_view(), name='api-register'),
-    path('api/login', TokenObtainPairView.as_view(), name='api-login'),
-    path('api/token/refresh', TokenRefreshView.as_view(), name='api-token-refresh'),
+    path('api/register/', users_views.RegisterView.as_view(), name='api-register'),
+    path('api/login/', TokenObtainPairView.as_view(), name='api-login'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='api-token-refresh'),
 
 ]

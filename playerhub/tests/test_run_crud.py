@@ -5,6 +5,11 @@ from .factories import UserFactory, RunFactory
 
 @pytest.mark.django_db
 def test_add_run(client):
+    """
+    Test to ensure that an authenticated user can create a run.
+
+    Expects a 201 Created response and one new run in the database.
+    """
     runs_count = Run.objects.count()
     user = UserFactory()
     client.force_authenticate(user=user)
@@ -22,6 +27,12 @@ def test_add_run(client):
 
 @pytest.mark.django_db
 def test_not_logged_in_user_add_run(client):
+    """
+    Test to ensure that unauthenticated users cannot create runs.
+
+    Sends a POST request without authentication.
+    Expects a 403 Forbidden response.
+    """
     data = {
         'name': 'Test Run',
         'game': 'Test Game',
@@ -35,6 +46,12 @@ def test_not_logged_in_user_add_run(client):
 
 @pytest.mark.django_db
 def test_get_runs(client):
+    """
+    Test to ensure that an authenticated user only receives their own runs.
+
+    Creates runs for the authenticated user and another user.
+    Sends a GET request and verifies only the user's own runs are returned.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     RunFactory.create_batch(5, user=user)
@@ -48,6 +65,12 @@ def test_get_runs(client):
 
 @pytest.mark.django_db
 def test_not_logged_in_get_runs(client):
+    """
+    Test to ensure that unauthenticated users cannot access the run list.
+
+    Sends a GET request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     RunFactory.create_batch(5, user=user)
     RunFactory.create_batch(4)
@@ -57,6 +80,11 @@ def test_not_logged_in_get_runs(client):
 
 @pytest.mark.django_db
 def test_change_run(client):
+    """
+    Test to ensure that an authenticated user can update their own run.
+
+    Expects a 200 OK response and the run to be updated.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -70,6 +98,12 @@ def test_change_run(client):
 
 @pytest.mark.django_db
 def test_change_foreign_user_run(client):
+    """
+    Test to ensure that users cannot update runs they do not own.
+
+    Sends a PATCH request on a run belonging to another user.
+    Expects a 404 Not Found response.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory()
@@ -82,6 +116,12 @@ def test_change_foreign_user_run(client):
 
 @pytest.mark.django_db
 def test_not_logged_in_change_run(client):
+    """
+    Test to ensure that unauthenticated users cannot update runs.
+
+    Sends a PATCH request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     run = RunFactory(user=user)
     change_data = {
@@ -93,6 +133,11 @@ def test_not_logged_in_change_run(client):
 
 @pytest.mark.django_db
 def test_delete_run(client):
+    """
+    Test to ensure that an authenticated user can delete their own run.
+
+    Expects a 204 No Content response and the run is removed from the database.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -102,6 +147,12 @@ def test_delete_run(client):
 
 @pytest.mark.django_db
 def test_not_logged_in_delete_run(client):
+    """
+    Test to ensure that unauthenticated users cannot delete runs.
+
+    Sends a DELETE request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     run = RunFactory(user=user)
     response = client.delete(f'/api/runs/{run.id}/')
@@ -110,10 +161,14 @@ def test_not_logged_in_delete_run(client):
 
 @pytest.mark.django_db
 def test_delete_foreign_user_run(client):
+    """
+    Test to ensure that users cannot delete runs they do not own.
+
+    Sends a DELETE request on a run belonging to another user.
+    Expects a 404 Not Found response.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory()
     response = client.delete(f'/api/runs/{run.id}/')
     assert response.status_code == 404, 'User should not be able to delete foreign user run'
-
-

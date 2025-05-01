@@ -5,6 +5,11 @@ from playerhub.models import Timer
 
 @pytest.mark.django_db
 def test_add_timer(client):
+    """
+    Test to ensure that an authenticated user can create a timer segment.
+
+    Expects a 201 Created response and one additional timer in the database.
+    """
     timers_count = Timer.objects.count()
     user = UserFactory()
     client.force_authenticate(user=user)
@@ -21,6 +26,12 @@ def test_add_timer(client):
 
 @pytest.mark.django_db
 def test_add_timer_not_logged_in(client):
+    """
+    Test to ensure that an unauthenticated user cannot create a timer.
+
+    Sends a POST request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     run = RunFactory(user=user)
     data = {
@@ -34,6 +45,12 @@ def test_add_timer_not_logged_in(client):
 
 @pytest.mark.django_db
 def test_add_timer_for_foreign_user(client):
+    """
+    Test to ensure that a user cannot create a timer for another user's run.
+
+    Sends a POST request for a run not owned by the user.
+    Expects a 404 Not Found response.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory()
@@ -48,6 +65,12 @@ def test_add_timer_for_foreign_user(client):
 
 @pytest.mark.django_db
 def test_get_timers(client):
+    """
+    Test to ensure that a user can retrieve only their own timers.
+
+    Creates 5 timers for the logged-in user and 4 for another.
+    Sends a GET request and expects only 5 user-owned timers in response.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -62,6 +85,12 @@ def test_get_timers(client):
 
 @pytest.mark.django_db
 def test_get_timers_not_logged_in(client):
+    """
+    Test to ensure that unauthenticated users cannot access timers.
+
+    Sends a GET request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     run = RunFactory(user=user)
     TimerFactory.create_batch(5, run=run)
@@ -71,6 +100,11 @@ def test_get_timers_not_logged_in(client):
 
 @pytest.mark.django_db
 def test_change_timer(client):
+    """
+    Test to ensure that an authenticated user can update their own timer.
+
+    Expects a 200 OK response and the timer data to be updated.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -85,6 +119,12 @@ def test_change_timer(client):
 
 @pytest.mark.django_db
 def test_change_not_logged_in_timer(client):
+    """
+    Test to ensure that unauthenticated users cannot update timers.
+
+    Sends a PATCH request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     run = RunFactory(user=user)
     timer = TimerFactory(run=run)
@@ -97,6 +137,12 @@ def test_change_not_logged_in_timer(client):
 
 @pytest.mark.django_db
 def test_change_foreign_user_timer(client):
+    """
+    Test to ensure that a user cannot update another user's timer.
+
+    Sends a PATCH request for a timer not owned by the user.
+    Expects a 404 Not Found response.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory()
@@ -110,6 +156,11 @@ def test_change_foreign_user_timer(client):
 
 @pytest.mark.django_db
 def test_delete_timer(client):
+    """
+    Test to ensure that a user can delete their own timer.
+
+    Expects a 204 No Content response and removal from the database.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory(user=user)
@@ -120,6 +171,12 @@ def test_delete_timer(client):
 
 @pytest.mark.django_db
 def test_delete_not_logged_in_timer(client):
+    """
+    Test to ensure that unauthenticated users cannot delete timers.
+
+    Sends a DELETE request without authentication.
+    Expects a 403 Forbidden response.
+    """
     user = UserFactory()
     run = RunFactory(user=user)
     timer = TimerFactory(run=run)
@@ -129,6 +186,12 @@ def test_delete_not_logged_in_timer(client):
 
 @pytest.mark.django_db
 def test_delete_foreign_user_timer(client):
+    """
+    Test to ensure that a user cannot delete another user's timer.
+
+    Sends a DELETE request for a timer not owned by the user.
+    Expects a 404 Not Found response.
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     run = RunFactory()
