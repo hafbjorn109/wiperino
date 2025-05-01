@@ -2,6 +2,12 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 
 class CreateUserSerializer(serializers.ModelSerializer):
+    """
+      Serializer for registering a new user.
+
+      Accepts username, email, and password.
+      Ensures password is write-only and creates the user using Django's built-in create_user method.
+      """
     class Meta:
         model = User
         fields = ['username', 'email', 'password']
