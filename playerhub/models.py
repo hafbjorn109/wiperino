@@ -6,13 +6,21 @@ MODE_CHOICES = [
     ('WIPECOUNTER', 'Wipe Counter'),
 ]
 
+
+class Game(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Run(models.Model):
     """
     Represents a game session created by a user.
     Can operate in two modes: speedrun timer or wipe counter.
     """
     name = models.CharField(max_length=50)
-    game = models.CharField(max_length=50)
+    game = models.ForeignKey(Game, on_delete=models.PROTECT)
     mode = models.CharField(choices=MODE_CHOICES, max_length=30)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_finished = models.BooleanField(default=False)
@@ -51,3 +59,4 @@ class Timer(models.Model):
 
     def __str__(self):
         return f'{self.run.name} | {self.segment_name}'
+
