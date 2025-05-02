@@ -1,5 +1,5 @@
 import pytest
-from .factories import UserFactory, RunFactory, TimerFactory
+from .factories import UserFactory, RunFactory, TimerFactory, GameFactory
 from playerhub.models import Timer
 
 
@@ -13,7 +13,8 @@ def test_add_timer(client):
     timers_count = Timer.objects.count()
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     data = {
         'segment_name': 'Test Timer',
         'is_finished': False,
@@ -33,7 +34,8 @@ def test_add_timer_not_logged_in(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     data = {
         'segment_name': 'Test Timer',
         'is_finished': False,
@@ -53,7 +55,8 @@ def test_add_timer_for_foreign_user(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    game = GameFactory()
+    run = RunFactory(game=game)
     data = {
         'segment_name': 'Test Timer',
         'is_finished': False,
@@ -73,7 +76,8 @@ def test_get_timers(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     TimerFactory.create_batch(5, run=run)
     TimerFactory.create_batch(4)
     response = client.get(f'/api/runs/{run.id}/timers/', {}, format='json')
@@ -92,7 +96,8 @@ def test_get_timers_not_logged_in(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     TimerFactory.create_batch(5, run=run)
     response = client.get(f'/api/runs/{run.id}/timers/', {}, format='json')
     assert response.status_code == 403, 'User should be not authenticated'
@@ -107,7 +112,8 @@ def test_change_timer(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     timer = TimerFactory(run=run)
     change_data = {
         'segment_name': 'New Timer Name',
@@ -126,7 +132,8 @@ def test_change_not_logged_in_timer(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     timer = TimerFactory(run=run)
     change_data = {
         'segment_name': 'New Timer Name',
@@ -145,7 +152,8 @@ def test_change_foreign_user_timer(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    game = GameFactory()
+    run = RunFactory(game=game)
     timer = TimerFactory(run=run)
     change_data = {
         'segment_name': 'New Timer Name',
@@ -163,7 +171,8 @@ def test_delete_timer(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     timer = TimerFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/timers/{timer.id}/')
     assert response.status_code == 204, 'Timer was not deleted correctly'
@@ -178,7 +187,8 @@ def test_delete_not_logged_in_timer(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     timer = TimerFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/timers/{timer.id}/')
     assert response.status_code == 403, 'User should be not authenticated'
@@ -193,8 +203,9 @@ def test_delete_foreign_user_timer(client):
     Expects a 404 Not Found response.
     """
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    run = RunFactory(game=game)
     timer = TimerFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/timers/{timer.id}/')
     assert response.status_code == 404, 'User should not be able to delete foreign user timer'

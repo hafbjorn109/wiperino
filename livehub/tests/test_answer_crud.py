@@ -1,6 +1,6 @@
 import pytest
 from .factories import PollFactory, AnswerFactory
-from playerhub.tests.factories import UserFactory, RunFactory
+from playerhub.tests.factories import UserFactory, RunFactory, GameFactory
 from livehub.models import Answer
 
 
@@ -14,7 +14,8 @@ def test_add_answer_moderator(client):
     answers_count = Answer.objects.count()
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     data = {
         'answer': 'Test Answer',
@@ -39,7 +40,8 @@ def test_get_answers_moderator(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     AnswerFactory.create_batch(5, poll=poll)
     AnswerFactory.create_batch(4)
@@ -63,7 +65,8 @@ def test_get_answers_viewer(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     AnswerFactory.create_batch(5, poll=poll)
     AnswerFactory.create_batch(4)
@@ -88,7 +91,8 @@ def test_change_answer_moderator(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     answer = AnswerFactory(poll=poll)
     change_data = {
@@ -112,7 +116,8 @@ def test_delete_answer_moderator(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     answer = AnswerFactory(poll=poll)
     response = client.delete(

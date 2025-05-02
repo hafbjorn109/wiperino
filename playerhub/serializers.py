@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Run, WipeCounter, Timer
+from .models import Run, WipeCounter, Timer, Game
 
 class RunSerializer(serializers.ModelSerializer):
     """
@@ -29,4 +29,10 @@ class TimerSerializer(serializers.ModelSerializer):
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
     class Meta:
         model = Timer
+        fields = '__all__'
+
+class GameSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Game
         fields = '__all__'

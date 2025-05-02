@@ -1,5 +1,5 @@
 import pytest
-from .factories import WipeCounterFactory, UserFactory, RunFactory
+from .factories import WipeCounterFactory, UserFactory, RunFactory, GameFactory
 from playerhub.models import WipeCounter
 
 
@@ -12,8 +12,9 @@ def test_add_wipecounter(client):
     """
     wipecounters_count = WipeCounter.objects.count()
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    run = RunFactory(user=user, game=game)
     data = {
         'segment_name': 'Test Segment',
         'count': 30,
@@ -33,7 +34,8 @@ def test_not_logged_in_user_add_wipecounter(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     data = {
         'segment_name': 'Test Segment',
         'count': 30,
@@ -52,8 +54,9 @@ def test_add_wipecounter_for_foreign_user(client):
     Expects a 404 Not Found response.
     """
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    run = RunFactory(game=game)
     data = {
         'segment_name': 'Test Segment',
         'count': 30,
@@ -73,7 +76,8 @@ def test_get_wipecounters(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     WipeCounterFactory.create_batch(5, run=run)
     WipeCounterFactory.create_batch(4)
     response = client.get(f'/api/runs/{run.id}/wipecounters/', {}, format='json')
@@ -92,7 +96,8 @@ def test_get_wipecounters_for_not_logged_in_user(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     WipeCounterFactory.create_batch(5, run=run)
     response = client.get(f'/api/runs/{run.id}/wipecounters/', {}, format='json')
     assert response.status_code == 403, 'User should be not authenticated'
@@ -106,8 +111,9 @@ def test_change_wipecounter(client):
     Expects a 200 OK response and the wipe counter to be updated.
     """
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    run = RunFactory(user=user, game=game)
     wipecounter = WipeCounterFactory(run=run)
     change_data = {
         'segment_name': 'New Segment Name',
@@ -126,7 +132,8 @@ def test_change_not_logged_in_wipecounter(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     wipecounter = WipeCounterFactory(run=run)
     change_data = {
         'segment_name': 'New Segment Name',
@@ -144,8 +151,9 @@ def test_change_foreign_user_wipecounter(client):
     Expects a 404 Not Found response.
     """
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    run = RunFactory(game=game)
     wipecounter = WipeCounterFactory(run=run)
     change_data = {
         'segment_name': 'New Segment Name',
@@ -163,7 +171,8 @@ def test_delete_wipecounter(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     wipecounter = WipeCounterFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/')
     assert response.status_code == 204, 'WipeCounter was not deleted correctly'
@@ -178,7 +187,8 @@ def test_delete_not_logged_in_wipecounter(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     wipecounter = WipeCounterFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/')
     assert response.status_code == 403, 'User should be not authenticated'
@@ -193,8 +203,9 @@ def test_delete_foreign_user_wipecounter(client):
     Expects a 404 Not Found response.
     """
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    run = RunFactory(game=game)
     wipecounter = WipeCounterFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/')
     assert response.status_code == 404, 'User should not be able to delete foreign user wipecounter'

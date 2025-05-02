@@ -1,6 +1,6 @@
 import pytest
 from .factories import PollFactory
-from playerhub.tests.factories import UserFactory, RunFactory
+from playerhub.tests.factories import UserFactory, RunFactory, GameFactory
 from livehub.models import Poll
 
 
@@ -15,7 +15,8 @@ def test_add_poll_moderator(client):
     polls_count = Poll.objects.count()
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     data = {
         'question': 'Test Question',
         'published': True
@@ -36,7 +37,8 @@ def test_get_polls_moderator(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     PollFactory.create_batch(5, run=run)
     PollFactory.create_batch(4)
     response = client.get(
@@ -59,7 +61,8 @@ def test_get_polls_viewers(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     PollFactory.create_batch(5, run=run)
     PollFactory.create_batch(4)
     response = client.get(f'/api/polls/{run.session_code}/', {}, format='json')
@@ -80,7 +83,8 @@ def test_change_poll_moderator(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     change_data = {
         'question': 'New Poll Question',
@@ -103,7 +107,8 @@ def test_delete_poll_moderator(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     poll = PollFactory(run=run)
     response = client.delete(
         f'/api/polls/mod/{run.moderator_session_code}/{poll.id}/',

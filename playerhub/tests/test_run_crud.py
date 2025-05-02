@@ -1,6 +1,6 @@
 import pytest
 from playerhub.models import Run
-from .factories import UserFactory, RunFactory
+from .factories import UserFactory, RunFactory, GameFactory
 
 
 @pytest.mark.django_db
@@ -12,10 +12,11 @@ def test_add_run(client):
     """
     runs_count = Run.objects.count()
     user = UserFactory()
+    game = GameFactory()
     client.force_authenticate(user=user)
     data = {
         'name': 'Test Run',
-        'game': 'Test Game',
+        'game': game.id,
         'mode': 'SPEEDRUN',
         'is_finished': False,
         'session_code': '223'
@@ -54,8 +55,9 @@ def test_get_runs(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    RunFactory.create_batch(5, user=user)
-    RunFactory.create_batch(4)
+    game = GameFactory()
+    RunFactory.create_batch(5, user=user, game=game)
+    RunFactory.create_batch(4, game=game)
     response = client.get('/api/runs/', {}, format='json')
     assert response.status_code == 200, 'Runs were not retrieved'
     assert len(response.data) == 5, 'User should see only his runs'
@@ -72,8 +74,9 @@ def test_not_logged_in_get_runs(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    RunFactory.create_batch(5, user=user)
-    RunFactory.create_batch(4)
+    game = GameFactory()
+    RunFactory.create_batch(5, user=user, game=game)
+    RunFactory.create_batch(4, game=game)
     response = client.get('/api/runs/', {}, format='json')
     assert response.status_code == 403, 'User should be not authenticated'
 
@@ -87,7 +90,8 @@ def test_change_run(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     change_data = {
         'name': 'New Run Name',
     }
@@ -106,7 +110,8 @@ def test_change_foreign_user_run(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    game = GameFactory()
+    run = RunFactory(game=game)
     change_data = {
         'name': 'New Run Name',
     }
@@ -123,7 +128,8 @@ def test_not_logged_in_change_run(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     change_data = {
         'name': 'New Run Name',
     }
@@ -140,7 +146,8 @@ def test_delete_run(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     response = client.delete(f'/api/runs/{run.id}/')
     assert response.status_code == 204, 'Run was not deleted correctly'
 
@@ -154,7 +161,8 @@ def test_not_logged_in_delete_run(client):
     Expects a 403 Forbidden response.
     """
     user = UserFactory()
-    run = RunFactory(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game)
     response = client.delete(f'/api/runs/{run.id}/')
     assert response.status_code == 403, 'User should be not authenticated'
 
@@ -169,6 +177,7 @@ def test_delete_foreign_user_run(client):
     """
     user = UserFactory()
     client.force_authenticate(user=user)
-    run = RunFactory()
+    game = GameFactory()
+    run = RunFactory(game=game)
     response = client.delete(f'/api/runs/{run.id}/')
     assert response.status_code == 404, 'User should not be able to delete foreign user run'
