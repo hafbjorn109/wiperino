@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Run, WipeCounter, Timer
 from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer
 from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class RunListView(generics.ListCreateAPIView):
@@ -88,3 +90,12 @@ class TimerView(generics.RetrieveUpdateDestroyAPIView):
             run__id = self.kwargs['run_id'],
             run__user= self.request.user
         ), id=self.kwargs['timer_id'])
+
+
+class MainDashboardView(LoginRequiredMixin, TemplateView):
+    """
+    View responsible for displaying the main dashboard after user login.
+
+    Requires the user to be authenticated. Renders the main menu.
+    """
+    template_name = 'playerhub/main_dashboard.html'

@@ -1,20 +1,13 @@
 <!doctype html>
 <html lang="en">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Wiperino App</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <header>
-        Wiperino
-    </header>
-    {% if user.is_authenticated %}
-    <form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-    </form>
-    {% endif %}
     <main>
         {% block content %}
         {% endblock %}

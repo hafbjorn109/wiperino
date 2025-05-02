@@ -18,18 +18,20 @@ class RegisterView(generics.CreateAPIView):
     """
     serializer_class = CreateUserSerializer
 
+
 class RegisterPageView(FormView):
     """
     View to render and handle user registration form.
     """
     template_name = 'users/register_form.html'
     form_class = RegisterForm
-    success_url = reverse_lazy('runs')
+    success_url = reverse_lazy('main-dashboard')
 
     def form_valid(self, form):
         user = form.save()
         login(self.request, user)
         return super().form_valid(form)
+
 
 class LoginPageView(LoginView):
     """
@@ -37,9 +39,16 @@ class LoginPageView(LoginView):
     On successful authentication, redirects to the user's run list.
     """
     template_name = 'users/login_form.html'
-    fields = '__all__'
     redirect_authenticated_user = True
-    success_url = reverse_lazy('runs')
+
+    def get_success_url(self):
+        return reverse_lazy('main-dashboard')
+
 
 class LogoutPageView(LogoutView):
+    """
+    View responsible for logging out the user.
+
+    After successful logout, the user is redirected to the login page.
+    """
     next_page = reverse_lazy('login')
