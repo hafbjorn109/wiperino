@@ -9,6 +9,12 @@
     <header>
         Wiperino
     </header>
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+    </form>
+    {% endif %}
     <main>
         {% block content %}
         {% endblock %}
