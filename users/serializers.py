@@ -8,15 +8,18 @@ class CreateUserSerializer(serializers.ModelSerializer):
       Accepts username, email, and password.
       Ensures password is write-only and creates the user using Django's built-in create_user method.
       """
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'email', 'password', 'password2']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError("Passwords don't match.")
+        return data
+
     def create(self, validated_data):
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            password=validated_data['password']
-        )
-        return user
+        validated_data.pop('password2')
+        return User.objects.create_user(**validated_data)

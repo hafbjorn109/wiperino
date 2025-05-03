@@ -13,7 +13,8 @@ def test_register_user(client):
     data = {
         'username': 'test_user',
         'email': 'test@mail.com',
-        'password': 'testpass1234'
+        'password': 'testpass1234',
+        'password2': 'testpass1234'
     }
     response = client.post('/api/register/', data, format='json')
     assert response.status_code == 201, 'User was not created'

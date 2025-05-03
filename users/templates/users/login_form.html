@@ -1,14 +1,25 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-  <h2>Login</h2>
-    {% if form.errors %}
-      <div class="error">
-        {{ form.errors }}
-      </div>
-    {% endif %}
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">Login</button>
-    </form>
+  <div class="dashboard">
+    <h1>Login</h1>
+
+    <div class="section">
+      <form id="login-form" class="auth-form">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button class="btn" type="submit">Log in</button>
+      </form>
+
+      <div id="error-msg" style="color: red; margin-top: 10px;"></div>
+
+      <a href="/register/" class="btn">Create Account</a>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block scripts %}
+  <script src="{% static 'js/login.js' %}"></script>
 {% endblock %}

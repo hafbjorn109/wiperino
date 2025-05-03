@@ -4,7 +4,6 @@ from .models import Run, WipeCounter, Timer
 from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class RunListView(generics.ListCreateAPIView):
@@ -92,7 +91,7 @@ class TimerView(generics.RetrieveUpdateDestroyAPIView):
         ), id=self.kwargs['timer_id'])
 
 
-class MainDashboardView(LoginRequiredMixin, TemplateView):
+class MainDashboardView(TemplateView):
     """
     View responsible for displaying the main dashboard after user login.
 
