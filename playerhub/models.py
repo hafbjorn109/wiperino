@@ -8,6 +8,9 @@ MODE_CHOICES = [
 
 
 class Game(models.Model):
+    """
+    Represents a single game available for choose for a session to create.
+    """
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
