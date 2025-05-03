@@ -20,4 +20,33 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Token expired');
         window.location.href = '/login/';
     }
+
+    async function refreshToken() {
+        const refresh = localStorage.getItem('refresh');
+        if (!refresh) return;
+
+        try {
+            const response = await fetch('/api/token/refresh/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    refresh: refresh
+                })
+            });
+            if (!response.ok) {
+                localStorage.removeItem('access');
+                localStorage.removeItem('refresh');
+                window.location.href = '/login/';
+                return;
+            }
+            const responseData = await response.json();
+            localStorage.setItem('access', responseData.access);
+        } catch(err) {
+            console.error(err);
+        }
+    }
+
+    setInterval(refreshToken, 240000);
 })
