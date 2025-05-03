@@ -65,12 +65,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const controllerCell = document.createElement('td');
                 nameCell.textContent = segment.segment_name;
                 finishedCell.textContent = segment.is_finished ? 'Finished' : 'In Progress';
+                finishedCell.classList.add('hide-mobile');
                 countCell.textContent = segment.count;
                 if (segment.is_finished === false){
                     controllerCell.innerHTML = `
-                        <button class="increment-btn btn-small" data-id="${segment.id}">+</button>
-                        <button class="decrement-btn btn-small" data-id="${segment.id}">-</button>
-                        <button class="finish-btn btn-small" data-id="${segment.id}">Finished</button>
+                        <div class="button-container">
+                            <button class="btn-small">+1</button>
+                            <button class="btn-small">-1</button>
+                            <button class="btn-small">Finish</button>
+                        </div>
                     `;
                 }
 

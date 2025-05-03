@@ -166,3 +166,47 @@ body {
   border-bottom: 2px solid #000;
 }
 
+.wipecounter-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+
+@media (max-width: 480px) {
+  h1, h2 {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  .wipecounter-table {
+    font-size: 0.75rem;
+  }
+
+  .btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .form-section {
+    padding: 1rem 0.5rem;
+  }
+
+  input, select, button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  td, th {
+    white-space: nowrap;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
