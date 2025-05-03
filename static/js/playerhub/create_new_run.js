@@ -132,5 +132,4 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     // Initial game list load
     await fetchAndDisplayGames();
-
 })

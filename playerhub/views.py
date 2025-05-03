@@ -123,4 +123,18 @@ class MainDashboardView(TemplateView):
 
 
 class CreateNewRunView(TemplateView):
+    """
+    View responsible for displaying the form for creating a new run.
+
+    Requires the user to be authenticated. Renders the form for creating a new run.
+    """
     template_name = 'playerhub/create_new_run.html'
+
+
+class RunDashboardView(TemplateView):
+    """
+    View responsible for displaying the run dashboard.
+
+    Requires the user to be authenticated. Renders the run dashboard with run details.
+    """
+    template_name = 'playerhub/run_dashboard.html'

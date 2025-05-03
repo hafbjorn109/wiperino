@@ -7,6 +7,7 @@ class RunSerializer(serializers.ModelSerializer):
     Handles the serialization and deserialization of Run instances.
     """
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    game = serializers.SlugRelatedField(slug_field='name', read_only=True)
     class Meta:
         model = Run
         fields = '__all__'
@@ -32,7 +33,10 @@ class TimerSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class GameSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer for the Game model.
+    Used to handle the creation and retrieval of game instances.
+    """
     class Meta:
         model = Game
         fields = '__all__'
