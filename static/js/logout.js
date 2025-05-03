@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('access');
             localStorage.removeItem('refresh');
-            window.location.href = '';
+            window.location.href = '/login/';
         });
     }
 });

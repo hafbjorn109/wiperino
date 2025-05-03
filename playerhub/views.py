@@ -1,7 +1,9 @@
+from os import TMP_MAX
+
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from .models import Run, WipeCounter, Timer
-from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer
+from .models import Run, WipeCounter, Timer, Game
+from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
@@ -91,6 +93,26 @@ class TimerView(generics.RetrieveUpdateDestroyAPIView):
         ), id=self.kwargs['timer_id'])
 
 
+class GameListView(generics.ListCreateAPIView):
+    """
+    API view to retrieve list of games or create a new game.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = GameSerializer
+    queryset = Game.objects.all()
+
+
+class GameView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API view to retrieve, update, or delete a specific game.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = GameSerializer
+
+    def get_object(self):
+        return get_object_or_404(Game, id=self.kwargs['game_id'])
+
+
 class MainDashboardView(TemplateView):
     """
     View responsible for displaying the main dashboard after user login.
@@ -98,3 +120,7 @@ class MainDashboardView(TemplateView):
     Requires the user to be authenticated. Renders the main menu.
     """
     template_name = 'playerhub/main_dashboard.html'
+
+
+class CreateNewRunView(TemplateView):
+    template_name = 'playerhub/create_new_run.html'
