@@ -209,7 +209,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             row.appendChild(controllerCell);
             tableBody.appendChild(row);
 
-
             document.getElementById('new-segment').value = '';
         } catch (err) {
             console.error(err);

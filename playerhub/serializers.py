@@ -7,7 +7,7 @@ class RunSerializer(serializers.ModelSerializer):
     Handles the serialization and deserialization of Run instances.
     """
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
-    game = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all())
     class Meta:
         model = Run
         fields = '__all__'

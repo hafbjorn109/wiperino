@@ -22,7 +22,7 @@ def test_add_game_not_logged_in(client):
         'name': 'Test Game',
     }
     response = client.post('/api/games/', data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -39,7 +39,7 @@ def test_get_games(client):
 def test_get_games_not_logged_in(client):
     GameFactory.create_batch(5)
     response = client.get('/api/games/', {}, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -56,7 +56,7 @@ def test_get_game_by_id(client):
 def test_get_game_by_id_not_logged_in(client):
     game = GameFactory()
     response = client.get(f'/api/games/{game.id}/', {}, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -79,7 +79,7 @@ def test_change_game_not_logged_in(client):
         'name': 'New Game Name',
     }
     response = client.patch(f'/api/games/{game.id}/', change_data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -95,4 +95,4 @@ def test_delete_game(client):
 def test_delete_game_not_logged_in(client):
     game = GameFactory()
     response = client.delete(f'/api/games/{game.id}/', format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'

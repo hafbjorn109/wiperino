@@ -42,7 +42,7 @@ def test_add_timer_not_logged_in(client):
         'elapsed_time': 45.68
     }
     response = client.post(f'/api/runs/{run.id}/timers/', data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -100,7 +100,7 @@ def test_get_timers_not_logged_in(client):
     run = RunFactory(user=user, game=game)
     TimerFactory.create_batch(5, run=run)
     response = client.get(f'/api/runs/{run.id}/timers/', {}, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -139,7 +139,7 @@ def test_change_not_logged_in_timer(client):
         'segment_name': 'New Timer Name',
     }
     response = client.patch(f'/api/runs/{run.id}/timers/{timer.id}/', change_data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -191,7 +191,7 @@ def test_delete_not_logged_in_timer(client):
     run = RunFactory(user=user, game=game)
     timer = TimerFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/timers/{timer.id}/')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db

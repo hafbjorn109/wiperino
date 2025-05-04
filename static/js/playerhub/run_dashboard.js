@@ -27,11 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (responseData.is_finished === true) {
                controllerSections.forEach(section => {
                    section.classList.add('hidden');
-               })
+               });
             } else {
               controllerSections.forEach(section => {
                    section.classList.add('hidden');
-               })
+               });
             }
 
         } catch (err) {

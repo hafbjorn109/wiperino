@@ -42,7 +42,7 @@ def test_not_logged_in_user_add_wipecounter(client):
         'is_finished': False,
     }
     response = client.post(f'/api/runs/{run.id}/wipecounters/', data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -100,7 +100,7 @@ def test_get_wipecounters_for_not_logged_in_user(client):
     run = RunFactory(user=user, game=game)
     WipeCounterFactory.create_batch(5, run=run)
     response = client.get(f'/api/runs/{run.id}/wipecounters/', {}, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -139,7 +139,7 @@ def test_change_not_logged_in_wipecounter(client):
         'segment_name': 'New Segment Name',
     }
     response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/', change_data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -191,7 +191,7 @@ def test_delete_not_logged_in_wipecounter(client):
     run = RunFactory(user=user, game=game)
     wipecounter = WipeCounterFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db

@@ -21,6 +21,8 @@ def test_add_run(client):
         'is_finished': False,
         'session_code': '223'
     }
+    print(data)
+    print(game.id)
     response = client.post('/api/runs/', data, format='json')
     assert response.status_code == 201, 'Run was not created'
     assert Run.objects.count() == runs_count + 1, 'Run was not created'
@@ -42,7 +44,7 @@ def test_not_logged_in_user_add_run(client):
         'session_code': '223'
     }
     response = client.post('/api/runs/', data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -78,7 +80,7 @@ def test_not_logged_in_get_runs(client):
     RunFactory.create_batch(5, user=user, game=game)
     RunFactory.create_batch(4, game=game)
     response = client.get('/api/runs/', {}, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -134,7 +136,7 @@ def test_not_logged_in_change_run(client):
         'name': 'New Run Name',
     }
     response = client.patch(f'/api/runs/{run.id}/', change_data, format='json')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
@@ -164,7 +166,7 @@ def test_not_logged_in_delete_run(client):
     game = GameFactory()
     run = RunFactory(user=user, game=game)
     response = client.delete(f'/api/runs/{run.id}/')
-    assert response.status_code == 403, 'User should be not authenticated'
+    assert response.status_code == 401, 'User should be not authenticated'
 
 
 @pytest.mark.django_db
