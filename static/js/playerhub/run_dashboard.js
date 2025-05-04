@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             document.getElementById('run-info').textContent = responseData.name;
-            document.getElementById('game-info').textContent = responseData.game;
+            document.getElementById('game-info').textContent = responseData.game_name;
 
             if (responseData.is_finished === true) {
                controllerSections.forEach(section => {
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                });
             } else {
               controllerSections.forEach(section => {
-                   section.classList.add('hidden');
+                   section.classList.remove('hidden');
                });
             }
 

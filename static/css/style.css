@@ -22,6 +22,7 @@ body {
   width: 100%;
   max-width: 240px;
   margin-bottom: 2rem;
+  margin-top: 2rem;
 }
 
 .btn {
@@ -172,7 +173,7 @@ body {
 }
 
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   h1, h2 {
     font-size: 1.25rem;
     text-align: center;
@@ -216,4 +217,79 @@ body {
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
+}
+
+.run-list-table {
+  width: 100%;
+  max-width: 900px;
+  margin: 2rem auto;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+}
+
+.run-list-table th,
+.run-list-table td {
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.run-list-table th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .run-list-table {
+    border: none;
+    font-size: 0.85rem;
+  }
+
+  .run-list-table thead {
+    display: none;
+  }
+
+  .run-list-table tbody,
+  .run-list-table tr,
+  .run-list-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .run-list-table tr {
+    margin-bottom: 1rem;
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.05);
+  }
+
+  .run-list-table td {
+    padding: 0.5rem 1rem;
+    text-align: left;
+    position: relative;
+  }
+
+  .run-list-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .button-container {
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: stretch;
+  }
 }

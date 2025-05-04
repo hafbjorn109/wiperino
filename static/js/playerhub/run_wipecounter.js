@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const overallWipesCountCell = document.getElementById('overall-wipes');
     const addSegmentButton = document.getElementById('add-segment-btn');
     const finishRunButton = document.getElementById('finish-run-btn');
+    const controllerSections = document.querySelectorAll('.form-section');
 
     async function fetchAndDisplayWipecounterDetails() {
         try {
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             tableBody.innerHTML = '';
 
-            let overallWipesCount = parseInt(overallWipesCountCell.textContent);
+            let overallWipesCount = 0;
 
             responseData.forEach(segment => {
                 console.log(segment);
@@ -235,11 +236,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                 alert(`Error: ${errorText}`);
                 return;
             }
+
+            controllerSections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById('overall-status').textContent = 'Finished';
+
+            await closeAllSegments();
+
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
         }
-        await closeAllSegments();
     }
 
     async function closeAllSegments() {
@@ -288,17 +296,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    tableBody.addEventListener('click', async(e) => {
-        await wipecounterController(e);
-    })
-
-    addSegmentButton.addEventListener('click', async() => {
-        await addSegment();
-    })
-
-    finishRunButton.addEventListener('click', async() => {
-        await finishRun();
-    })
+    tableBody.addEventListener('click', (e) => wipecounterController(e));
+    addSegmentButton.addEventListener('click', () =>  addSegment());
+    finishRunButton.addEventListener('click', () => finishRun());
 
 
     await fetchAndDisplayWipecounterDetails();

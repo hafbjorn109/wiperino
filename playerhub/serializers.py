@@ -8,6 +8,7 @@ class RunSerializer(serializers.ModelSerializer):
     """
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
     game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all())
+    game_name = serializers.ReadOnlyField(source='game.name', read_only=True)
     class Meta:
         model = Run
         fields = '__all__'

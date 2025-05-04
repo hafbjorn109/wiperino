@@ -116,8 +116,7 @@ class GameView(generics.RetrieveUpdateDestroyAPIView):
 class MainDashboardView(TemplateView):
     """
     View responsible for displaying the main dashboard after user login.
-
-    Requires the user to be authenticated. Renders the main menu.
+    Renders the main menu.
     """
     template_name = 'playerhub/main_dashboard.html'
 
@@ -125,8 +124,7 @@ class MainDashboardView(TemplateView):
 class CreateNewRunView(TemplateView):
     """
     View responsible for displaying the form for creating a new run.
-
-    Requires the user to be authenticated. Renders the form for creating a new run.
+    Renders the form for creating a new run.
     """
     template_name = 'playerhub/create_new_run.html'
 
@@ -134,8 +132,7 @@ class CreateNewRunView(TemplateView):
 class RunDashboardView(TemplateView):
     """
     View responsible for displaying the run dashboard.
-
-    Requires the user to be authenticated. Renders the run dashboard with run details.
+    Renders the run dashboard with run details.
     """
     template_name = 'playerhub/run_dashboard.html'
 
@@ -143,3 +140,10 @@ class RunDashboardView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['run'] = get_object_or_404(Run, id=self.kwargs['run_id'])
         return context
+
+
+class RunListDashboardView(TemplateView):
+    """
+    View responsible for displaying the list of runs.
+    """
+    template_name = 'playerhub/run_list.html'

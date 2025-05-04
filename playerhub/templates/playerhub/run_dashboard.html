@@ -3,12 +3,16 @@
 {% block content %}
 <div class="dashboard">
   <h1>Wiperino</h1>
-  <h2 id="run-info">Run: [details]</h2>
-  <h2 id="game-info">Game: [details]</h2>
+  <h2 id="run-info"></h2>
+  <h2 id="game-info"></h2>
 
   {% if run.mode == "WIPECOUNTER" %}
     {% include "playerhub/wipecounter_dashboard.html" %}
   {% endif %}
+
+  <div class="section">
+  <a href="{% url 'main-dashboard' %}" class="btn">Main Menu</a>
+  </div>
 </div>
 {% endblock %}
 
