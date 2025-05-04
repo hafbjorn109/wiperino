@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const finishRunButton = document.getElementById('finish-run-btn');
     const controllerSections = document.querySelectorAll('.form-section');
 
+    /**
+     * Fetches wipe counter segments from the API and renders them in the table.
+     * Calculates and updates the overall wipe count.
+     */
     async function fetchAndDisplayWipecounterDetails() {
         try {
             const response = await fetch(`/api/runs/${runId}/wipecounters/`, {
@@ -25,7 +29,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             tableBody.innerHTML = '';
-
             let overallWipesCount = 0;
 
             responseData.forEach(segment => {
@@ -65,6 +68,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    /**
+     * Handles button clicks in the wipe counter table: increment, decrement, finish.
+     */
     async function wipecounterController(e) {
         const segmentRow = e.target.closest('tr');
         const segmentId = e.target.dataset.id;
@@ -163,6 +169,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+
+    /**
+     * Sends a POST request to add a new segment to the table.
+     */
     async function addSegment() {
         const segmentNameInput = document.getElementById('new-segment').value;
 
@@ -217,6 +227,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    /**
+     * Sends a PATCH request to mark a run as finished.
+     */
     async function finishRun() {
         try {
             const response = await fetch(`/api/runs/${runId}/`, {
@@ -250,6 +263,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+
+    /**
+     * Sends a PATCH request to mark all segments connected with run as finished.
+     */
     async function closeAllSegments() {
 
         try {
@@ -267,6 +284,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
+            // Changing status to 'finished' in all segments connected to the run
             const finishRun = responseData.map(async(segment) => {
                 const response = await fetch(`/api/runs/${runId}/wipecounters/${segment.id}/`, {
                     method: 'PATCH',
@@ -296,10 +314,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+
+    // Triggers actions after click on one of the buttons
     tableBody.addEventListener('click', (e) => wipecounterController(e));
+
+    // Triggers function responsible for handling new segment request.
     addSegmentButton.addEventListener('click', () =>  addSegment());
+
+    // Triggers function responsible for finishing run and connected segments.
     finishRunButton.addEventListener('click', () => finishRun());
 
-
+    // Initial data load
     await fetchAndDisplayWipecounterDetails();
 })

@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const runId = window.location.pathname.split('/')[2];
     const controllerSections = document.querySelectorAll('.form-section');
 
+    /**
+     * Fetches details about a specific run for the logged-in user and displays them in the table.
+     * Disables a control panel if run is not active.
+     */
     async function fetchAndDisplayRunDetails() {
         try {
             const response = await fetch(`/api/runs/${runId}/`, {
@@ -40,5 +44,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Initial data load
     await fetchAndDisplayRunDetails();
 })

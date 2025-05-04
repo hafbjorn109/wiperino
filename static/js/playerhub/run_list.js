@@ -2,6 +2,11 @@ document.addEventListener("DOMContentLoaded", async() => {
     const token = localStorage.getItem('access');
     const tableBody = document.querySelector('.run-list-body');
 
+
+    /**
+     * Fetches all runs for the logged-in user and displays them in the table.
+     * Creates DOM elements for each run and appends them to the table body.
+     */
     async function fetchAndDisplayRuns() {
         try {
             const response = await fetch('/api/runs/', {
@@ -56,6 +61,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Sends a DELETE request to remove a run by its ID.
+     * If successful, refreshes the run list.
+     */
     async function deleteRun(runId) {
         try {
             const response = await fetch(`/api/runs/${runId}/`, {
@@ -78,8 +87,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
-
-
+    /**
+     * Handles click events on the run list table body.
+     * Supports continuing to a run dashboard or deleting a run.
+     */
     tableBody.addEventListener('click', (e) => {
         if (e.target.classList.contains('continue-btn')) {
             window.location.href = `/runs/${e.target.dataset.id}/`;
@@ -92,5 +103,6 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     })
 
+    // Initial data load
     await fetchAndDisplayRuns()
 });

@@ -64,7 +64,6 @@ urlpatterns = [
     # HTML views - playerhub
     path('dashboard/', playerhub_views.MainDashboardView.as_view(), name='main-dashboard'),
     path('runs/create/', playerhub_views.CreateNewRunView.as_view(), name='runs-create'),
-
     path('runs/<int:run_id>/', playerhub_views.RunDashboardView.as_view(), name='runs-view'),
     path('runs/', playerhub_views.RunListDashboardView.as_view(), name='runs-list'),
 
