@@ -1,8 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem('access');
-    const runTitle = document.getElementById('run-info');
-    const gameTitle = document.getElementById('game-info');
     const runId = window.location.pathname.split('/')[2];
+    const controllerSections = document.querySelectorAll('.form-section');
 
     async function fetchAndDisplayRunDetails() {
         try {
@@ -22,8 +21,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            runTitle.textContent = responseData.name;
-            gameTitle.textContent = responseData.game;
+            document.getElementById('run-info').textContent = responseData.name;
+            document.getElementById('game-info').textContent = responseData.game;
+
+            if (responseData.is_finished === true) {
+               controllerSections.forEach(section => {
+                   section.classList.add('hidden');
+               })
+            } else {
+              controllerSections.forEach(section => {
+                   section.classList.add('hidden');
+               })
+            }
 
         } catch (err) {
             console.error(err);

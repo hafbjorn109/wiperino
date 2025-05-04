@@ -210,3 +210,10 @@ body {
     gap: 0.25rem;
   }
 }
+
+.segment-name-cell {
+  max-width: 150px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
