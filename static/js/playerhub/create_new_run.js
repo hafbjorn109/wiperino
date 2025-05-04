@@ -46,8 +46,6 @@ document.addEventListener('DOMContentLoaded', async() => {
     async function addNewGameHandler(e){
         e.preventDefault();
         const gameNameInput = document.getElementById('new-game-input').value;
-        console.log('Save game');
-        console.log(gameNameInput)
 
         try {
             const response = await fetch('/api/games/', {

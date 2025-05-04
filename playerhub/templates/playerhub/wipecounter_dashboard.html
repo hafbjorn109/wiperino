@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+ <table class="wipecounter-table">
+    <thead>
+    <tr>
+      <th>Segment Name</th>
+      <th class="hide-mobile">Status</th>
+      <th>Wipes</th>
+      <th>Controller</th>
+    </tr>
+    </thead>
+    <tbody class="wipecounter-summary-row">
+    <tr>
+      <td>Overall</td>
+      <td id="overall-status" class="hide-mobile">In Progress</td>
+      <td id="overall-wipes">0</td>
+      <td></td>
+    </tr>
+    </tbody>
+    <tbody class="wipecounter-table-body">
+    </tbody>
+  </table>
+
+  <!-- Add Segment -->
+  <div class="form-section">
+    <label for="new-segment">Add Segment</label>
+    <input type="text" id="new-segment" placeholder="Segment Name">
+    <button type="button" class="btn" id="add-segment-btn">Add</button>
+  </div>
+
+  <!-- Run Controls -->
+  <div class="form-section controls">
+    <button id="config-btn" type="button" class="btn">Config</button>
+    <button id="finish-run-btn" type="button" class="btn">Finish Run</button>
+  </div>
+{% endblock %}
+
+

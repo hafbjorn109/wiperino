@@ -138,3 +138,8 @@ class RunDashboardView(TemplateView):
     Requires the user to be authenticated. Renders the run dashboard with run details.
     """
     template_name = 'playerhub/run_dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['run'] = get_object_or_404(Run, id=self.kwargs['run_id'])
+        return context
