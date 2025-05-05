@@ -35,6 +35,7 @@ REDIS_URL = config('REDIS_URL')
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +48,7 @@ INSTALLED_APPS = [
     'channels',
     'rest_framework',
     'corsheaders',
-    'django_extensions',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -86,7 +87,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'wiperino.wsgi.application'
+# WSGI_APPLICATION = 'wiperino.wsgi.application'
 ASGI_APPLICATION = "wiperino.asgi.application"
 
 CHANNEL_LAYERS = {

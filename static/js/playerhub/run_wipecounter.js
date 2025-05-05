@@ -7,6 +7,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     const finishRunButton = document.getElementById('finish-run-btn');
     const controllerSections = document.querySelectorAll('.form-section');
 
+    const socket = new WebSocket(
+        'ws://' + window.location.host + `/ws/runs/${runId}/?token=${token}`
+    );
+
+    socket.onopen = () => console.log("WebSocket connected");
+    socket.onerror = (e) => console.error("WebSocket error:", e);
+    socket.onclose = (e) => console.warn("WebSocket closed:", e);
+
+    socket.onmessage = (e) => {
+        console.log("WS onmessage", e.data)
+        const data = JSON.parse(e.data);
+
+        const allSegmentRows = document.querySelectorAll('.wipecounter-table-body tr');
+        allSegmentRows.forEach(segmentRow => {
+            const id = segmentRow.querySelector('.btn-small')?.dataset?.id;
+            if (id && parseInt(id) === parseInt(data.segment_id)) {
+                console.log('match found')
+                const countCell = segmentRow.querySelector('td:nth-child(3)');
+                if (countCell) countCell.textContent = data.count;
+            }
+        });
+
+        let total = 0;
+        document.querySelectorAll(
+            '.wipecounter-table-body tr td:nth-child(3)').
+        forEach(cell => {
+            total += parseInt(cell.textContent || 0);
+        });
+        overallWipesCountCell.textContent = total;
+    }
+
     /**
      * Fetches wipe counter segments from the API and renders them in the table.
      * Calculates and updates the overall wipe count.
@@ -102,7 +133,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                         return;
                     }
                     countCell.textContent = responseData.count;
+
                     overallWipesCountCell.textContent = `${parseInt(overallWipesCountCell.textContent) + 1}`;
+
+                    socket.send(JSON.stringify({
+                        type: 'wipe_update',
+                        segment_id: segmentId,
+                        count: newCount,
+                    }));
+                    console.log("WS send wipe_update:", segmentId, newCount);
+
                     } catch (err) {
                         console.error(err);
                         alert('Something went wrong. Try again.');
@@ -132,6 +172,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                     countCell.textContent = responseData.count;
                     overallWipesCountCell.textContent = `${parseInt(overallWipesCountCell.textContent) - 1}`;
+
+                    socket.send(JSON.stringify({
+                        type: 'wipe_update',
+                        segment_id: segmentId,
+                        count: newCount,
+                    }));
+
                 } catch (err) {
                     console.error(err);
                     alert('Something went wrong. Try again.');
@@ -219,6 +266,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             row.appendChild(countCell);
             row.appendChild(controllerCell);
             tableBody.appendChild(row);
+
+            socket.send(JSON.stringify({
+                type: 'new_segment',
+                segment_id: responseData.id,
+                segment_name: responseData.segment_name,
+                count: responseData.count,
+                is_finished: responseData.is_finished,
+            }));
 
             document.getElementById('new-segment').value = '';
         } catch (err) {
