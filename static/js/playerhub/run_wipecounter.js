@@ -21,39 +21,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         switch (data.type) {
             case 'new_segment':
-                const row = document.createElement('tr');
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = data.segment_name;
-                nameCell.classList.add('segment-name-cell');
-
-                const finishedCell = document.createElement('td');
-                finishedCell.textContent = data.is_finished ? 'Finished' : 'In Progress';
-                finishedCell.classList.add('hide-mobile');
-
-                const countCell = document.createElement('td');
-                countCell.textContent = data.count;
-
-                const controllerCell = document.createElement('td');
-                if (!data.is_finished) {
-                    controllerCell.innerHTML = `
-                        <div class="button-container">
-                            <button id="increment-btn" class="btn-small" data-id="${data.segment_id}">+1</button>
-                            <button id="decrement-btn" class="btn-small" data-id="${data.segment_id}">-1</button>
-                            <button id="finish-segment-btn" class="btn-small" data-id="${data.segment_id}">Finish</button>
-                        </div>
-                    `;
-                }
-
-                row.appendChild(nameCell);
-                row.appendChild(finishedCell);
-                row.appendChild(countCell);
-                row.appendChild(controllerCell);
-                tableBody.appendChild(row);
-
-
-                const currentTotal = parseInt(overallWipesCountCell.textContent || 0);
-                overallWipesCountCell.textContent = currentTotal + data.count;
+                renderSegmentRow(data);
+                recalculateWipes();
                 break;
 
             case 'wipe_update':
@@ -66,13 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         if (countCell) countCell.textContent = data.count;
                     }
                 });
-                let total = 0;
-                document.querySelectorAll(
-                    '.wipecounter-table-body tr td:nth-child(3)').
-                forEach(cell => {
-                    total += parseInt(cell.textContent || 0);
-                });
-                overallWipesCountCell.textContent = total;
+                recalculateWipes();
                 break;
 
             case 'segment_finished':
@@ -118,35 +81,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             let overallWipesCount = 0;
 
             responseData.forEach(segment => {
-                console.log(segment);
-                const row = document.createElement('tr');
-                const nameCell = document.createElement('td');
-                const countCell = document.createElement('td');
-                const finishedCell = document.createElement('td');
-                const controllerCell = document.createElement('td');
-                nameCell.textContent = segment.segment_name;
-                nameCell.classList.add('segment-name-cell');
-                finishedCell.textContent = segment.is_finished ? 'Finished' : 'In Progress';
-                finishedCell.classList.add('hide-mobile');
-                countCell.textContent = segment.count;
-                overallWipesCount += segment.count;
-                overallWipesCountCell.textContent = overallWipesCount;
-                if (segment.is_finished === false){
-                    controllerCell.innerHTML = `
-                        <div class="button-container">
-                            <button id="increment-btn" class="btn-small" data-id="${segment.id}">+1</button>
-                            <button id="decrement-btn" class="btn-small" data-id="${segment.id}">-1</button>
-                            <button id="finish-segment-btn" class="btn-small" data-id="${segment.id}">Finish</button>
-                        </div>
-                    `;
-                }
+                overallWipesCount += renderSegmentRow(segment);
+            });
 
-                row.appendChild(nameCell);
-                row.appendChild(finishedCell);
-                row.appendChild(countCell);
-                row.appendChild(controllerCell);
-                tableBody.appendChild(row);
-            })
+            overallWipesCountCell.textContent = overallWipesCount;
 
         } catch (err) {
             console.error(err);
@@ -346,6 +284,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             await closeAllSegments();
 
+
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
@@ -403,6 +342,49 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    function renderSegmentRow(data) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = data.segment_name;
+        nameCell.classList.add('segment-name-cell');
+
+        const finishedCell = document.createElement('td');
+        finishedCell.textContent = data.is_finished ? 'Finished' : 'In Progress';
+        finishedCell.classList.add('hide-mobile');
+
+        const countCell = document.createElement('td');
+        countCell.textContent = data.count;
+
+        const controllerCell = document.createElement('td');
+        if (!data.is_finished) {
+            controllerCell.innerHTML = `
+                <div class="button-container">
+                    <button id="increment-btn" class="btn-small" data-id="${data.segment_id || data.id}">+1</button>
+                    <button id="decrement-btn" class="btn-small" data-id="${data.segment_id || data.id}">-1</button>
+                    <button id="finish-segment-btn" class="btn-small" data-id="${data.segment_id || data.id}">Finish</button>
+                </div>
+            `;
+        }
+
+        row.appendChild(nameCell);
+        row.appendChild(finishedCell);
+        row.appendChild(countCell);
+        row.appendChild(controllerCell);
+        tableBody.appendChild(row);
+
+        return data.count;
+    }
+
+    function recalculateWipes() {
+        let total = 0;
+        document.querySelectorAll(
+            '.wipecounter-table-body tr td:nth-child(3)').
+        forEach(cell => {
+            total += parseInt(cell.textContent || 0);
+        });
+        overallWipesCountCell.textContent = total;
+    }
 
     // Triggers actions after click on one of the buttons
     tableBody.addEventListener('click', (e) => wipecounterController(e));
