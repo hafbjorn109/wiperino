@@ -58,6 +58,15 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        if data.get('type') == 'run_finished':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'run_finished',
+                    'user': self.scope['user'].username
+                }
+            )
+
     async def wipe_update(self, event):
         print("broadcasting to client:", event)
         await self.send(text_data=json.dumps({
@@ -84,3 +93,8 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
             'user': event['user']
         }))
 
+    async def run_finished(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'run_finished',
+            'user': event['user']
+        }))

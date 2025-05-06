@@ -53,6 +53,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                     });
                 });
                 break;
+
+            case 'run_finished':
+                controllerSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                document.getElementById('overall-status').textContent = 'Finished';
+
+                disableAllControllers()
+                break;
         }
     }
 
@@ -277,13 +286,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            controllerSections.forEach(section => {
-                section.classList.add('hidden');
-            });
-            document.getElementById('overall-status').textContent = 'Finished';
-
             await closeAllSegments();
-
+            socket.send(JSON.stringify({
+                type: 'run_finished',
+            }));
 
         } catch (err) {
             console.error(err);
@@ -333,7 +339,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             })
 
             await Promise.all(finishRun);
-            await fetchAndDisplayWipecounterDetails();
 
 
         } catch (err) {
@@ -384,6 +389,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             total += parseInt(cell.textContent || 0);
         });
         overallWipesCountCell.textContent = total;
+    }
+
+    function disableAllControllers(){
+        document.querySelectorAll('.wipecounter-table-body tr').forEach(row => {
+        const controllerCell = row.querySelector('td:nth-child(4)');
+        const statusCell = row.querySelector('td:nth-child(2)');
+        if (controllerCell) controllerCell.innerHTML = '';
+        if (statusCell) statusCell.textContent = 'Finished';
+        });
     }
 
     // Triggers actions after click on one of the buttons
