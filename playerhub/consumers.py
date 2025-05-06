@@ -24,9 +24,6 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         print("WS RECEIVE:", text_data)
         data = json.loads(text_data)
 
-        if 'segment_id' not in data or 'count' not in data:
-            return
-
         if data.get('type') == 'wipe_update':
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -51,6 +48,16 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        if data.get('type') == 'segment_finished':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'segment_finished',
+                    'segment_id': data['segment_id'],
+                    'user': self.scope['user'].username
+                }
+            )
+
     async def wipe_update(self, event):
         print("broadcasting to client:", event)
         await self.send(text_data=json.dumps({
@@ -69,3 +76,11 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
             'is_finished': event['is_finished'],
             'user': event['user']
         }))
+
+    async def segment_finished(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'segment_finished',
+            'segment_id': event['segment_id'],
+            'user': event['user']
+        }))
+

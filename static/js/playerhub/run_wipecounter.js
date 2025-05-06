@@ -19,23 +19,78 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("WS onmessage", e.data)
         const data = JSON.parse(e.data);
 
-        const allSegmentRows = document.querySelectorAll('.wipecounter-table-body tr');
-        allSegmentRows.forEach(segmentRow => {
-            const id = segmentRow.querySelector('.btn-small')?.dataset?.id;
-            if (id && parseInt(id) === parseInt(data.segment_id)) {
-                console.log('match found')
-                const countCell = segmentRow.querySelector('td:nth-child(3)');
-                if (countCell) countCell.textContent = data.count;
-            }
-        });
+        switch (data.type) {
+            case 'new_segment':
+                const row = document.createElement('tr');
 
-        let total = 0;
-        document.querySelectorAll(
-            '.wipecounter-table-body tr td:nth-child(3)').
-        forEach(cell => {
-            total += parseInt(cell.textContent || 0);
-        });
-        overallWipesCountCell.textContent = total;
+                const nameCell = document.createElement('td');
+                nameCell.textContent = data.segment_name;
+                nameCell.classList.add('segment-name-cell');
+
+                const finishedCell = document.createElement('td');
+                finishedCell.textContent = data.is_finished ? 'Finished' : 'In Progress';
+                finishedCell.classList.add('hide-mobile');
+
+                const countCell = document.createElement('td');
+                countCell.textContent = data.count;
+
+                const controllerCell = document.createElement('td');
+                if (!data.is_finished) {
+                    controllerCell.innerHTML = `
+                        <div class="button-container">
+                            <button id="increment-btn" class="btn-small" data-id="${data.segment_id}">+1</button>
+                            <button id="decrement-btn" class="btn-small" data-id="${data.segment_id}">-1</button>
+                            <button id="finish-segment-btn" class="btn-small" data-id="${data.segment_id}">Finish</button>
+                        </div>
+                    `;
+                }
+
+                row.appendChild(nameCell);
+                row.appendChild(finishedCell);
+                row.appendChild(countCell);
+                row.appendChild(controllerCell);
+                tableBody.appendChild(row);
+
+
+                const currentTotal = parseInt(overallWipesCountCell.textContent || 0);
+                overallWipesCountCell.textContent = currentTotal + data.count;
+                break;
+
+            case 'wipe_update':
+                const allSegmentRows = document.querySelectorAll('.wipecounter-table-body tr');
+                allSegmentRows.forEach(segmentRow => {
+                    const id = segmentRow.querySelector('.btn-small')?.dataset?.id;
+                    if (id && parseInt(id) === parseInt(data.segment_id)) {
+                        console.log('match found')
+                        const countCell = segmentRow.querySelector('td:nth-child(3)');
+                        if (countCell) countCell.textContent = data.count;
+                    }
+                });
+                let total = 0;
+                document.querySelectorAll(
+                    '.wipecounter-table-body tr td:nth-child(3)').
+                forEach(cell => {
+                    total += parseInt(cell.textContent || 0);
+                });
+                overallWipesCountCell.textContent = total;
+                break;
+
+            case 'segment_finished':
+                console.log('received segment_finished', data.segment_id);
+                document.querySelectorAll('.wipecounter-table-body tr').forEach(row => {
+                    const btns = row.querySelectorAll('.btn-small');
+                    btns.forEach(btn => {
+                        const id = btn.dataset?.id;
+                        if (Number(id) === Number(data.segment_id)) {
+                            const statusCell = row.querySelector('td:nth-child(2)');
+                            const controllerCell = row.querySelector('td:nth-child(4)');
+                            if (statusCell) statusCell.textContent = 'Finished';
+                            if (controllerCell) controllerCell.innerHTML = '';
+                        }
+                    });
+                });
+                break;
+        }
     }
 
     /**
@@ -185,9 +240,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
             if (e.target.id === 'finish-segment-btn') {
-                const statusCell = segmentRow.querySelector('td:nth-child(2)');
-                const controllerCell = segmentRow.querySelector('td:nth-child(4)');
-
                 try {
                     const response = await fetch(`/api/runs/${runId}/wipecounters/${segmentId}/`, {
                         method: 'PATCH',
@@ -206,8 +258,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                         alert(`Error: ${errorText}`);
                         return;
                     }
-                    statusCell.textContent = 'Finished';
-                    controllerCell.innerHTML = '';
+
+                    console.log('sent segment_finished', segmentId);
+                    socket.send(JSON.stringify({
+                        type: 'segment_finished',
+                        segment_id: segmentId,
+                    }));
+
                 } catch (err) {
                     console.error(err);
                     alert('Something went wrong. Try again.');
@@ -243,29 +300,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 alert(`Error: ${errorText}`);
                 return;
             }
-
-            const row = document.createElement('tr');
-            const nameCell = document.createElement('td');
-            const countCell = document.createElement('td');
-            const finishedCell = document.createElement('td');
-            const controllerCell = document.createElement('td');
-
-            nameCell.textContent = segmentNameInput;
-            finishedCell.textContent = 'In Progress';
-            finishedCell.classList.add('hide-mobile');
-            countCell.textContent = `0`;
-            controllerCell.innerHTML = `
-                <div class="button-container">
-                    <button id="increment-btn" class="btn-small" data-id="${responseData.id}">+1</button>
-                    <button id="decrement-btn" class="btn-small" data-id="${responseData.id}">-1</button>
-                    <button id="finish-segment-btn" class="btn-small" data-id="${responseData.id}">Finish</button>
-                </div>
-            `;
-            row.appendChild(nameCell);
-            row.appendChild(finishedCell);
-            row.appendChild(countCell);
-            row.appendChild(controllerCell);
-            tableBody.appendChild(row);
 
             socket.send(JSON.stringify({
                 type: 'new_segment',
