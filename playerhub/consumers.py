@@ -98,3 +98,49 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
             'type': 'run_finished',
             'user': event['user']
         }))
+
+
+class OverlayConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.run_id = self.scope['url_route']['kwargs']['run_id']
+        self.room_group_name = f'run_{self.run_id}'
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def wipe_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'wipe_update',
+            'segment_id': event['segment_id'],
+            'count': event['count']
+        }))
+
+    async def new_segment(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'new_segment',
+            'segment_id': event['segment_id'],
+            'segment_name': event['segment_name'],
+            'count': event['count'],
+            'is_finished': event['is_finished']
+        }))
+
+    async def segment_finished(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'segment_finished',
+            'segment_id': event['segment_id']
+        }))
+
+    async def run_finished(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'run_finished'
+        }))

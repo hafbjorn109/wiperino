@@ -147,3 +147,10 @@ class RunListDashboardView(TemplateView):
     View responsible for displaying the list of runs.
     """
     template_name = 'playerhub/run_list.html'
+
+
+class OverlayRunView(TemplateView):
+    """
+    View responsible for displaying the overlay for OBS streaming a run..
+    """
+    template_name = 'playerhub/overlay_run.html'
