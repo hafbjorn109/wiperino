@@ -1,7 +1,7 @@
 from os import TMP_MAX
 
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Run, WipeCounter, Timer, Game
 from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer
 from django.shortcuts import get_object_or_404
@@ -31,6 +31,26 @@ class RunView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Run.objects.filter(user=self.request.user)
+
+
+class PublicRunView(generics.RetrieveAPIView):
+    """
+    API view to retrieve a specific run for public use, i.e., overlays for OBS.
+    """
+    queryset = Run.objects.all()
+    serializer_class = RunSerializer
+    permission_classes = [AllowAny]
+
+
+class PublicWipecounterListView(generics.ListAPIView):
+    """
+    API view to retrieve list of wipe counters for public use, i.e., overlays for OBS.
+    """
+    serializer_class = WipeCounterSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'])
 
 
 class WipeCounterListView(generics.ListCreateAPIView):

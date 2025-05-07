@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', async() => {
     const runId = window.location.pathname.split('/')[3];
-    const token = localStorage.getItem('access');
-    const segmentsDiv = document.getElementById('segments');
+    const segmentsDiv = document.querySelector('#segments');
     const gameTitle = document.getElementById('game-title');
     const runName = document.getElementById('run-name');
     const overallWipes = document.getElementById('overall-wipes');
@@ -15,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     socket.onerror = (e) => console.error("WebSocket error:", e);
     socket.onclose = (e) => console.warn("WebSocket closed:", e);
 
+    //
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     async function fetchAndDisplayRunDetails() {
         try {
-            const responseRun = await fetch(`/api/runs/${runId}/`, {
+            const responseRun = await fetch(`/public-api/runs/${runId}/`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -54,11 +54,10 @@ document.addEventListener('DOMContentLoaded', async() => {
                 return;
             }
 
-            gameTitle.textContent = responseDataRun.game;
+            gameTitle.textContent = responseDataRun.game_name;
             runName.textContent = responseDataRun.name;
-            runStatus.textContent = responseDataRun.is_finished ? 'Finished' : 'Active';
 
-            const responseWipecounter = await fetch(`/api/runs/${runId}/wipecounters/`, {
+            const responseWipecounter = await fetch(`/public-api/runs/${runId}/wipecounters/`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -82,22 +81,26 @@ document.addEventListener('DOMContentLoaded', async() => {
     }
 
     function renderSegment(segment) {
-        const segmentDiv = document.createElement('div');
-        segmentDiv.classList.add('segment');
-        segmentDiv.id = `segment-${segment.id}`;
+        const row = document.createElement('tr');
+        const segmentId = segment.segment_id || segment.id;
 
-        segmentDiv.innerHTML = `
-            <div class="segment-name">${segment.segment_name}</div>
-            <div class="segment-count" data-id="${segment.id}">Wipes: ${segment.count}</div>
-            <div class="segment-status">${segment.is_finished ? "Finished" : "In progress"}</div>
+        row.id = `segment-${segmentId}`;
+
+        row.innerHTML = `
+            <td class="segment-name">${segment.segment_name}</td>
+            <td class="segment-count" data-id="${segmentId}">${segment.count}</td>
         `;
 
-        segmentsDiv.appendChild(segmentDiv);
+        segmentsDiv.appendChild(row);
     }
 
     function updateSegmentCount(segmentId, count) {
         const segmentEl = document.querySelector(`[data-id="${segmentId}"]`);
-        if (segmentEl) segmentEl.textContent = `Wipes: ${count}`;
+        if (segmentEl) {
+            segmentEl.textContent = count;
+        } else {
+            console.warn('Segment not found for update:', segmentId);
+        }
     }
 
     function finishSegment(segmentId) {

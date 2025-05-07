@@ -37,6 +37,8 @@ urlpatterns = [
          playerhub_views.TimerView.as_view(), name='api-timer'),
     path('api/games/', playerhub_views.GameListView.as_view(), name='api-games'),
     path('api/games/<int:game_id>/', playerhub_views.GameView.as_view(), name='api-game'),
+    path("public-api/runs/<int:pk>/", playerhub_views.PublicRunView.as_view(), name="public-run-detail"),
+    path("public-api/runs/<int:run_id>/wipecounters/", playerhub_views.PublicWipecounterListView.as_view(), name="public-wipecounters-list"),
 
     # API endpoints - livehub
     path('api/polls/mod/<str:moderator_session_code>/',

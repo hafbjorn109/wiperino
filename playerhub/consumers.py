@@ -119,6 +119,7 @@ class OverlayConsumer(AsyncWebsocketConsumer):
         )
 
     async def wipe_update(self, event):
+        print("Overlay WS received wipe_update:", event)
         await self.send(text_data=json.dumps({
             'type': 'wipe_update',
             'segment_id': event['segment_id'],

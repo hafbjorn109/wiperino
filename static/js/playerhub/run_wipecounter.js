@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     socket.onerror = (e) => console.error("WebSocket error:", e);
     socket.onclose = (e) => console.warn("WebSocket closed:", e);
 
+
     socket.onmessage = (e) => {
         console.log("WS onmessage", e.data)
         const data = JSON.parse(e.data);
