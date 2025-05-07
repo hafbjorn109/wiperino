@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const runName = document.getElementById('run-name');
     const overallWipes = document.getElementById('overall-wipes');
     const runStatus = document.getElementById('run-status');
+    const allSegments = [];
 
     const socket = new WebSocket(
         'ws://' + window.location.host + `/ws/overlay/runs/${runId}/`
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                 break;
 
             case 'new_segment':
+                allSegments.push(data);
                 renderSegment(data);
                 updateOverall();
                 break;
@@ -71,7 +73,8 @@ document.addEventListener('DOMContentLoaded', async() => {
                 return;
             }
 
-            responseDataWipecounter.forEach(renderSegment);
+            allSegments.push(...responseDataWipecounter);
+            renderSegment();
             updateOverall();
 
         } catch (err) {
@@ -80,18 +83,18 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     }
 
-    function renderSegment(segment) {
-        const row = document.createElement('tr');
-        const segmentId = segment.segment_id || segment.id;
-
-        row.id = `segment-${segmentId}`;
-
-        row.innerHTML = `
-            <td class="segment-name">${segment.segment_name}</td>
-            <td class="segment-count" data-id="${segmentId}">${segment.count}</td>
-        `;
-
-        segmentsDiv.appendChild(row);
+    function renderSegment() {
+        const lastSegments = allSegments.slice(-10);
+        segmentsDiv.innerHTML = '';
+        lastSegments.forEach(seg => {
+            const row = document.createElement('tr');
+            row.id = `segment-${seg.id}`;
+            row.innerHTML = `
+                <td class="segment-name">${seg.segment_name}</td>
+                <td class="segment-count" data-id="${seg.id}">${Number(seg.count)}</td>
+            `;
+            segmentsDiv.appendChild(row);
+        });
     }
 
     function updateSegmentCount(segmentId, count) {
@@ -101,6 +104,10 @@ document.addEventListener('DOMContentLoaded', async() => {
         } else {
             console.warn('Segment not found for update:', segmentId);
         }
+
+
+        const seg = allSegments.find(s => s.id === Number(segmentId));
+        if (seg) seg.count = Number(count); // dodatkowo upewniamy się, że to liczba
     }
 
     function finishSegment(segmentId) {
@@ -113,14 +120,10 @@ document.addEventListener('DOMContentLoaded', async() => {
     }
 
     function updateOverall() {
-        const allCounts = document.querySelectorAll('.segment-count');
-        let total = 0;
-        allCounts.forEach(count => {
-            const matches = count.textContent.match(/\d+/);
-            if (matches) total += parseInt(matches[0]);
-        });
-        overallWipes.textContent = `Total wipes: ${total}`;
+                const total = allSegments.reduce((sum, seg) => sum + seg.count, 0); // ZMIANA
+        overallWipes.textContent = `${total}`;
     }
+
 
     await fetchAndDisplayRunDetails();
 });

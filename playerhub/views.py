@@ -16,7 +16,7 @@ class RunListView(generics.ListCreateAPIView):
     serializer_class = RunSerializer
 
     def get_queryset(self):
-        return Run.objects.filter(user=self.request.user)
+        return Run.objects.filter(user=self.request.user).order_by('id')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -30,7 +30,7 @@ class RunView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RunSerializer
 
     def get_queryset(self):
-        return Run.objects.filter(user=self.request.user)
+        return Run.objects.filter(user=self.request.user).order_by('id')
 
 
 class PublicRunView(generics.RetrieveAPIView):
@@ -50,7 +50,7 @@ class PublicWipecounterListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'])
+        return WipeCounter.objects.filter(run__id = self.kwargs['run_id']).order_by('id')
 
 
 class WipeCounterListView(generics.ListCreateAPIView):
@@ -61,7 +61,7 @@ class WipeCounterListView(generics.ListCreateAPIView):
     serializer_class = WipeCounterSerializer
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'], run__user=self.request.user)
+        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'], run__user=self.request.user).order_by('id')
 
     def perform_create(self, serializer):
         run = get_object_or_404(Run, id=self.kwargs['run_id'], user=self.request.user)
