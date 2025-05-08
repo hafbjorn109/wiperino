@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async() => {
 
 
         const seg = allSegments.find(s => s.id === Number(segmentId));
-        if (seg) seg.count = Number(count); // dodatkowo upewniamy się, że to liczba
+        if (seg) seg.count = Number(count);
     }
 
     function finishSegment(segmentId) {
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     }
 
     function updateOverall() {
-                const total = allSegments.reduce((sum, seg) => sum + seg.count, 0); // ZMIANA
+                const total = allSegments.reduce((sum, seg) => sum + seg.count, 0);
         overallWipes.textContent = `${total}`;
     }
 
