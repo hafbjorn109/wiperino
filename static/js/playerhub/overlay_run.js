@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const runStatus = document.getElementById('run-status');
     const allSegments = [];
 
+    // Connect to WebSocket to receive live updates for the overlay
     const socket = new WebSocket(
         'ws://' + window.location.host + `/ws/overlay/runs/${runId}/`
     );
@@ -15,13 +16,14 @@ document.addEventListener('DOMContentLoaded', async() => {
     socket.onerror = (e) => console.error("WebSocket error:", e);
     socket.onclose = (e) => console.warn("WebSocket closed:", e);
 
-    //
+    // Handle messages received via WebSocket
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
         switch(data.type) {
             case 'wipe_update':
-                updateSegmentCount(data.segment_id, data.count);
+                console.log('trying to wipe_update', data);
+                updateSegmentCount(Number(data.segment_id), data.count);
                 updateOverall();
                 break;
 
@@ -30,7 +32,13 @@ document.addEventListener('DOMContentLoaded', async() => {
                 break;
 
             case 'new_segment':
-                allSegments.push(data);
+                console.log('trying to new_segment', data);
+                allSegments.push({
+                    id: Number(data.segment_id),
+                    segment_name: data.segment_name,
+                    count: Number(data.count),
+                    is_finished: data.is_finished
+                });
                 renderSegment(data);
                 updateOverall();
                 break;
@@ -41,6 +49,10 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     }
 
+    /**
+     * Fetches details about a specific run and its segments from the public API.
+     * Populates the header and renders segments in the table.
+     */
     async function fetchAndDisplayRunDetails() {
         try {
             const responseRun = await fetch(`/public-api/runs/${runId}/`, {
@@ -83,6 +95,10 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     }
 
+
+    /**
+     * Renders the last 10 segments from the list and displays them in a table format.
+     */
     function renderSegment() {
         const lastSegments = allSegments.slice(-10);
         segmentsDiv.innerHTML = '';
@@ -97,7 +113,12 @@ document.addEventListener('DOMContentLoaded', async() => {
         });
     }
 
+    /**
+     * Updates the displayed wipe count for a specific segment.
+     * Also updates the count inside the internal allSegments array.
+     */
     function updateSegmentCount(segmentId, count) {
+        console.log('updatesegmentcount fired:', segmentId, count);
         const segmentEl = document.querySelector(`[data-id="${segmentId}"]`);
         if (segmentEl) {
             segmentEl.textContent = count;
@@ -105,11 +126,17 @@ document.addEventListener('DOMContentLoaded', async() => {
             console.warn('Segment not found for update:', segmentId);
         }
 
-
-        const seg = allSegments.find(s => s.id === Number(segmentId));
-        if (seg) seg.count = Number(count);
+        const seg = allSegments.find(s => Number(s.id) === Number(segmentId));
+        if (seg) {
+            seg.count = Number(count);
+            renderSegment();
+            updateOverall();
+        }
     }
 
+    /**
+     * Marks a segment as finished by updating its status field (if visible).
+     */
     function finishSegment(segmentId) {
         const segment = document.getElementById(`segment-${segmentId}`);
         if (segment) {
@@ -119,11 +146,14 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     }
 
+    /**
+     * Calculates and updates the total number of wipes from all segments.
+     */
     function updateOverall() {
-                const total = allSegments.reduce((sum, seg) => sum + seg.count, 0);
+        const total = allSegments.reduce((sum, seg) => sum + seg.count, 0);
         overallWipes.textContent = `${total}`;
     }
 
-
+    // Initial load of run and segment data
     await fetchAndDisplayRunDetails();
 });

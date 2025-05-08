@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const finishRunButton = document.getElementById('finish-run-btn');
     const controllerSections = document.querySelectorAll('.form-section');
 
+    // Connect to WebSocket to receive live updates for the overlay
     const socket = new WebSocket(
         'ws://' + window.location.host + `/ws/runs/${runId}/?token=${token}`
     );
@@ -15,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     socket.onerror = (e) => console.error("WebSocket error:", e);
     socket.onclose = (e) => console.warn("WebSocket closed:", e);
 
-
+    // Handle messages received via WebSocket
     socket.onmessage = (e) => {
         console.log("WS onmessage", e.data)
         const data = JSON.parse(e.data);

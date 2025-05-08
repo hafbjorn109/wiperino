@@ -1,8 +1,15 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+
 class WipecounterConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for authenticated users interacting with wipe counter sessions.
+    Handles segment updates, creation, finishing, and run finalization.
+    """
+
     async def connect(self):
+        """Joins the user to a group based on the run ID."""
         print('WS CONNECTED')
         self.run_id = self.scope['url_route']['kwargs']['run_id']
         self.room_group_name = f'run_{self.run_id}'
@@ -15,12 +22,17 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        """Removes the user from the group upon WebSocket disconnection."""
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
     async def receive(self, text_data=None, bytes_data=None):
+        """
+        Handles incoming messages from the client and dispatches them to the group.
+        Supports wipe updates, segment creation, finishing segments, and finishing runs.
+        """
         print("WS RECEIVE:", text_data)
         data = json.loads(text_data)
 
@@ -68,6 +80,7 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
             )
 
     async def wipe_update(self, event):
+        """Broadcasts a wipe counter update to all group members."""
         print("broadcasting to client:", event)
         await self.send(text_data=json.dumps({
             'type': 'wipe_update',
@@ -77,6 +90,7 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         }))
 
     async def new_segment(self, event):
+        """Broadcasts a new segment to all group members."""
         await self.send(text_data=json.dumps({
             'type': 'new_segment',
             'segment_id': event['segment_id'],
@@ -87,6 +101,7 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         }))
 
     async def segment_finished(self, event):
+        """Broadcasts that a segment has been marked as finished."""
         await self.send(text_data=json.dumps({
             'type': 'segment_finished',
             'segment_id': event['segment_id'],
@@ -94,6 +109,7 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         }))
 
     async def run_finished(self, event):
+        """Broadcasts that the entire run has been finished."""
         await self.send(text_data=json.dumps({
             'type': 'run_finished',
             'user': event['user']
@@ -101,7 +117,12 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
 
 
 class OverlayConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for public overlays (no authentication).
+    Receives and broadcasts updates for OBS overlays in real time.
+    """
     async def connect(self):
+        """Joins a group based on run ID for receiving real-time updates."""
         self.run_id = self.scope['url_route']['kwargs']['run_id']
         self.room_group_name = f'run_{self.run_id}'
 
@@ -113,12 +134,14 @@ class OverlayConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        """Leaves the group when the WebSocket connection is closed."""
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
     async def wipe_update(self, event):
+        """Sends wipe count updates to the overlay client."""
         print("Overlay WS received wipe_update:", event)
         await self.send(text_data=json.dumps({
             'type': 'wipe_update',
@@ -127,6 +150,7 @@ class OverlayConsumer(AsyncWebsocketConsumer):
         }))
 
     async def new_segment(self, event):
+        """Sends new segment data to the overlay client."""
         await self.send(text_data=json.dumps({
             'type': 'new_segment',
             'segment_id': event['segment_id'],
@@ -136,12 +160,14 @@ class OverlayConsumer(AsyncWebsocketConsumer):
         }))
 
     async def segment_finished(self, event):
+        """Sends notification that a segment is finished."""
         await self.send(text_data=json.dumps({
             'type': 'segment_finished',
             'segment_id': event['segment_id']
         }))
 
     async def run_finished(self, event):
+        """Sends notification that the run has ended."""
         await self.send(text_data=json.dumps({
             'type': 'run_finished'
         }))
