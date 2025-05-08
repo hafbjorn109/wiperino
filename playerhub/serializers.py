@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Run, WipeCounter, Timer, Game
 
+
 class RunSerializer(serializers.ModelSerializer):
     """
     Serializer for the Run model.
@@ -13,6 +14,7 @@ class RunSerializer(serializers.ModelSerializer):
         model = Run
         fields = '__all__'
 
+
 class WipeCounterSerializer(serializers.ModelSerializer):
     """
     Serializer for the WipeCounter model.
@@ -22,6 +24,7 @@ class WipeCounterSerializer(serializers.ModelSerializer):
     class Meta:
         model = WipeCounter
         fields = '__all__'
+
 
 class TimerSerializer(serializers.ModelSerializer):
     """
@@ -33,6 +36,7 @@ class TimerSerializer(serializers.ModelSerializer):
         model = Timer
         fields = '__all__'
 
+
 class GameSerializer(serializers.ModelSerializer):
     """
     Serializer for the Game model.
@@ -41,3 +45,25 @@ class GameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Game
         fields = '__all__'
+
+
+class CreatePollSessionSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new poll session.
+    """
+    session_id = serializers.CharField(read_only=True)
+    moderator_url = serializers.CharField(read_only=True)
+    viewer_url = serializers.CharField(read_only=True)
+    overlay_url = serializers.CharField(read_only=True)
+
+
+class PollQuestionSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new poll question.
+    """
+    poll_id = serializers.CharField(read_only=True)
+    question = serializers.CharField(max_length=300)
+    answers = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        min_length=2,
+    )

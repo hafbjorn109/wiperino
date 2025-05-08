@@ -40,19 +40,9 @@ urlpatterns = [
     path("public-api/runs/<int:pk>/", playerhub_views.PublicRunView.as_view(), name="public-run-detail"),
     path("public-api/runs/<int:run_id>/wipecounters/", playerhub_views.PublicWipecounterListView.as_view(), name="public-wipecounters-list"),
 
-    # API endpoints - livehub
-    path('api/polls/mod/<str:moderator_session_code>/',
-         livehub_views.ModeratorPollListView.as_view(), name='api-polls-moderator'),
-    path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/',
-         livehub_views.ModeratorPollView.as_view(), name='api-poll-moderator'),
-    path('api/polls/<str:session_code>/',
-         livehub_views.ViewerPollListView.as_view(), name='api-polls'),
-    path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/',
-         livehub_views.ModeratorAnswerListView.as_view(), name='api-answers-moderator'),
-    path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/<int:answer_id>/',
-         livehub_views.ModeratorAnswerView.as_view(), name='api-answer-moderator'),
-    path('api/polls/<str:session_code>/<int:poll_id>/answers/',
-         livehub_views.ViewerAnswerListView.as_view(), name='api-answers'),
+    # API endpoints - polls
+    path('api/polls/create_session/', playerhub_views.CreatePollSessionAPIView.as_view(), name='api-polls-create'),
+    path('api/polls/m/<str:moderator_token>/add_poll/', playerhub_views.AddPollToSessionView.as_view(), name='add_poll'),
 
     # API endpoints - user authorization
     path('api/register/', users_views.RegisterView.as_view(), name='api-register'),
@@ -70,4 +60,24 @@ urlpatterns = [
     path('runs/', playerhub_views.RunListDashboardView.as_view(), name='runs-list'),
     path('overlay/runs/<int:run_id>/', playerhub_views.OverlayRunView.as_view(), name='overlay-run'),
 
+    # HTML views - polls
+    path('polls/create/', playerhub_views.CreatePollSessionView.as_view(), name='polls-create'),
+    path('polls/m/<str:moderator_token>/', playerhub_views.ModeratorPollsView.as_view(), name='polls-moderator'),
+
+
+
+    # NOT USED SOLUTION - TO CLEAN UP LATER
+    # # API endpoints - livehub
+    # path('api/polls/mod/<str:moderator_session_code>/',
+    #      livehub_views.ModeratorPollListView.as_view(), name='api-polls-moderator'),
+    # path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/',
+    #      livehub_views.ModeratorPollView.as_view(), name='api-poll-moderator'),
+    # path('api/polls/<str:session_code>/',
+    #      livehub_views.ViewerPollListView.as_view(), name='api-polls'),
+    # path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/',
+    #      livehub_views.ModeratorAnswerListView.as_view(), name='api-answers-moderator'),
+    # path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/<int:answer_id>/',
+    #      livehub_views.ModeratorAnswerView.as_view(), name='api-answer-moderator'),
+    # path('api/polls/<str:session_code>/<int:poll_id>/answers/',
+    #      livehub_views.ViewerAnswerListView.as_view(), name='api-answers'),
 ]

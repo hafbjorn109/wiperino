@@ -1,11 +1,18 @@
-from os import TMP_MAX
-
-from rest_framework import generics
+import uuid
+import json
+import redis
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Run, WipeCounter, Timer, Game
-from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer
+from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer, \
+    CreatePollSessionSerializer, PollQuestionSerializer
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
 class RunListView(generics.ListCreateAPIView):
@@ -133,6 +140,75 @@ class GameView(generics.RetrieveUpdateDestroyAPIView):
         return get_object_or_404(Game, id=self.kwargs['game_id'])
 
 
+@method_decorator(csrf_exempt, name='dispatch')
+class CreatePollSessionAPIView(generics.CreateAPIView):
+    serializer_class = CreatePollSessionSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        print('user', request.user)
+        session_id = str(uuid.uuid4())
+        moderator_token = f'{session_id}-mod-{uuid.uuid4().hex[:6]}'
+        viewer_token = f'{session_id}-viewer'
+        overlay_token = f'{session_id}-overlay'
+
+        session_data = {
+            'session_id': session_id,
+            'published_question_id': None
+        }
+
+        r.set(f'poll:session:{session_id}', json.dumps(session_data), ex=86400)
+        r.set(f'poll:token_map:{moderator_token}', session_id, ex=86400)
+        r.set(f'poll:token_map:{viewer_token}', session_id, ex=86400)
+        r.set(f'poll:token_map:{overlay_token}', session_id, ex=86400)
+
+        return Response(
+            {
+                'moderator_url': f'/polls/m/{moderator_token}',
+                'viewer_url': f'/polls/v/{viewer_token}',
+                'overlay_url': f'/polls/o/{overlay_token}',
+                'session_id': session_id,
+            }, status=status.HTTP_201_CREATED
+        )
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AddPollToSessionView(generics.CreateAPIView):
+    serializer_class = PollQuestionSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        moderator_token = kwargs['moderator_token']
+
+        session_id = r.get(f'poll:token_map:{moderator_token}')
+        if not session_id:
+            return Response(
+                {'error': 'Invalid moderator token'}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        question_data = serializer.validated_data
+        question_id = f'q-{uuid.uuid4().hex[:6]}'
+
+        question_record = {
+            'id': question_id,
+            'question': question_data['question'],
+            'answers': question_data['answers'],
+            'votes': {answer: 0 for answer in question_data['answers']}
+        }
+
+        r.set(f'poll:question:{question_id}', json.dumps(question_record), ex=86400)
+        r.rpush(f'poll:session:{session_id}:questions', question_id)
+
+        return Response({
+            'question_id': question_id,
+            'question': question_data['question'],
+            'answers': question_data['answers'],
+        }, status=status.HTTP_201_CREATED)
+
+
 class MainDashboardView(TemplateView):
     """
     View responsible for displaying the main dashboard after user login.
@@ -174,3 +250,15 @@ class OverlayRunView(TemplateView):
     View responsible for displaying the overlay for OBS streaming a run..
     """
     template_name = 'playerhub/overlay_run.html'
+
+class ModeratorPollsView(TemplateView):
+    """
+    View responsible for displaying dashboard for creating polls.
+    """
+    template_name = 'polls/polls_moderator.html'
+
+class CreatePollSessionView(TemplateView):
+    """
+    View responsible for displaying dashboard for creating a new poll.
+    """
+    template_name = 'polls/create_poll_session.html'
