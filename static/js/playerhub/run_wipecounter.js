@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addSegmentButton = document.getElementById('add-segment-btn');
     const finishRunButton = document.getElementById('finish-run-btn');
     const controllerSections = document.querySelectorAll('.form-section');
+    const obsUrlButton = document.getElementById('url-obs-btn');
 
     // Connect to WebSocket to receive live updates for the overlay
     const socket = new WebSocket(
@@ -402,6 +403,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    function showObsUrl(){
+        const url = window.location.origin + `/overlay/runs/${runId}/`;
+        const obsUrl = document.getElementById('obs-url');
+        obsUrl.value = url;
+        obsUrl.classList.remove('hidden');
+    }
+
     // Triggers actions after click on one of the buttons
     tableBody.addEventListener('click', (e) => wipecounterController(e));
 
@@ -410,6 +418,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Triggers function responsible for finishing run and connected segments.
     finishRunButton.addEventListener('click', () => finishRun());
+
+    //Shows URL to copy-paste in OBS to activate overlay on stream
+    obsUrlButton.addEventListener('click', () => {showObsUrl()});
 
     // Initial data load
     await fetchAndDisplayWipecounterDetails();

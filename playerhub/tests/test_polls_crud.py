@@ -2,6 +2,7 @@ import uuid
 import pytest
 from django.conf import settings
 import redis
+import json
 
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
@@ -29,7 +30,6 @@ def test_create_poll_session(client):
     assert session_exists is not None, 'Session was not stored in Redis'
 
 
-@pytest.mark.django_db
 def test_add_poll(client):
     session_id = str(uuid.uuid4())
     moderator_token = f'{session_id}-mod-test'
@@ -51,3 +51,57 @@ def test_add_poll(client):
     redis_key = f'poll:question:{response_json["question_id"]}'
     stored = r.get(redis_key)
     assert stored is not None, 'Poll was not stored in Redis'
+
+
+def test_list_poll_questions(client):
+    session_id = str(uuid.uuid4())
+    moderator_token = f'{session_id}-mod-test'
+    question_id_1 = 'q-123'
+    question_id_2 = 'q-456'
+
+    r.set(f'poll:token_map:{moderator_token}', session_id, ex=60)
+    r.rpush(f'poll:session:{session_id}:questions', question_id_1, question_id_2)
+
+    r.set(f'poll:question:{question_id_1}', json.dumps({
+        'id': question_id_1,
+        'question': 'Question 1',
+        'answers': ['Yes', 'No'],
+        'votes': {'Yes': 0, 'No': 0}
+    }), ex=60)
+
+    r.set(f'poll:question:{question_id_2}', json.dumps({
+        'id': question_id_2,
+        'question': 'Question 2',
+        'answers': ['Yes', 'No'],
+        'votes': {'Yes': 0, 'No': 0}
+    }), ex=60)
+
+    response = client.get(f'/api/polls/m/{moderator_token}/')
+    assert response.status_code == 200, 'Questions were not retrieved'
+    data = response.json()
+    assert len(data) == 2, 'Wrong number of questions returned'
+    assert any(q["question"] == "Question 1" for q in data)
+    assert any(q["question"] == "Question 2" for q in data)
+
+
+def test_delete_poll_question(client):
+    session_id = str(uuid.uuid4())
+    moderator_token = f'{session_id}-mod-test'
+    question_id = 'q-123'
+
+    r.set(f'poll:token_map:{moderator_token}', session_id, ex=60)
+    r.rpush(f'poll:session:{session_id}:questions', question_id)
+    r.set(f'poll:question:{question_id}', json.dumps({
+        'id': question_id,
+        'question': 'Question 1',
+        'answers': ['Yes', 'No'],
+        'votes': {'Yes': 0, 'No': 0}
+    }), ex=60)
+
+    response = client.delete(f'/api/polls/m/{moderator_token}/{question_id}/')
+    assert response.status_code == 204, 'Question was not deleted'
+
+    assert r.get(f'poll:question:{question_id}') is None, 'Question was not deleted from Redis'
+    assert question_id not in r.lrange(f'poll:session:{session_id}:questions', 0, -1), 'Question was not removed from session'
+
+

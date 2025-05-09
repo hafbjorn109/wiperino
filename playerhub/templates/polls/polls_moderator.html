@@ -1,9 +1,24 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<h1>Create Poll</h1>
-<div id="polls" class="form-section">
+<div class="dashboard">
+    <div class="form-section">
+        <label for="question-text">Question:</label>
+        <input id="question-text" type="text">
 
+        <div id="answers-wrapper">
+            <input class="answer-input" type="text" placeholder="Answer 1">
+            <input class="answer-input" type="text" placeholder="Answer 2">
+        </div>
+        <div class="button-container">
+            <button id="add-answer" class="btn-small">+ Add Answer</button>
+            <button id="submit-question" class="btn">Submit Question</button>
+        </div>
+    </div>
+    <hr>
+
+    <h2>Questions</h2>
+    <div id="polls" class="form-section"></div>
 </div>
 {% endblock %}
 

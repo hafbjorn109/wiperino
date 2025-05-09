@@ -147,7 +147,7 @@ class CreatePollSessionAPIView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         print('user', request.user)
-        session_id = str(uuid.uuid4())
+        session_id = str(uuid.uuid4().hex[:6])
         moderator_token = f'{session_id}-mod-{uuid.uuid4().hex[:6]}'
         viewer_token = f'{session_id}-viewer'
         overlay_token = f'{session_id}-overlay'
@@ -208,6 +208,49 @@ class AddPollToSessionView(generics.CreateAPIView):
             'answers': question_data['answers'],
         }, status=status.HTTP_201_CREATED)
 
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PollQuestionsListView(generics.ListAPIView):
+    serializer_class = PollQuestionSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        moderator_token = self.kwargs['moderator_token']
+        session_id = r.get(f'poll:token_map:{moderator_token}')
+        if not session_id:
+            return []
+
+        question_ids = r.lrange(f'poll:session:{session_id}:questions', 0, -1)
+        questions = []
+        for qid in question_ids:
+            g_data = r.get(f'poll:question:{qid}')
+            if g_data:
+                questions.append(json.loads(g_data))
+        return questions
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        return Response(queryset)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class DeletePollQuestionView(generics.DestroyAPIView):
+    serializer_class = PollQuestionSerializer
+    permission_classes = [AllowAny]
+
+    def destroy(self, request, *args, **kwargs):
+        moderator_token = kwargs['moderator_token']
+        question_id = kwargs['question_id']
+        session_id = r.get(f'poll:token_map:{moderator_token}')
+
+        if not session_id:
+            return Response(
+                {'error': 'Invalid moderator token'}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        r.lrem(f'poll:session:{session_id}:questions', 0, question_id)
+        r.delete(f'poll:question:{question_id}')
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class MainDashboardView(TemplateView):
     """
