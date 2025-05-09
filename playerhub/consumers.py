@@ -268,6 +268,38 @@ class PollConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        elif data.get('type') == 'vote':
+            question_id = data['question_id']
+            answer = data['answer']
+
+            question_key = f'poll:question:{question_id}'
+            question_data_raw = await sync_to_async(r.get)(question_key)
+            if not question_data_raw:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'error': 'Question not found'
+                }))
+                return
+
+            question = json.loads(question_data_raw)
+            if answer not in question['answers']:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'error': 'Invalid answer'
+                }))
+                return
+
+            question['votes'][answer] += 1
+            await sync_to_async(r.set)(question_key, json.dumps(question), ex=86400)
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'vote',
+                    'question_id': question_id,
+                    'votes': question['votes']
+                }
+            )
 
     async def publish_question(self, event):
         """Broadcasts a publishing trigger for a question to all group members."""
@@ -282,4 +314,13 @@ class PollConsumer(AsyncWebsocketConsumer):
         """Broadcasts an unpublishing trigger for a question to all group members."""
         await self.send(text_data=json.dumps({
             'type': 'unpublish_question',
+        }))
+
+
+    async def vote_update(self, event):
+        """Broadcasts a vote update for a question to all group members."""
+        await self.send(text_data=json.dumps({
+            'type': 'vote_update',
+            'question_id': event['question_id'],
+            'votes': event['votes']
         }))

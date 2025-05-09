@@ -246,6 +246,8 @@ class DeletePollQuestionView(generics.DestroyAPIView):
         r.delete(f'poll:question:{question_id}')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+
 class MainDashboardView(TemplateView):
     """
     View responsible for displaying the main dashboard after user login.
