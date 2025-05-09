@@ -178,8 +178,12 @@ class OverlayConsumer(AsyncWebsocketConsumer):
 
 
 class PollConsumer(AsyncWebsocketConsumer):
-
+    """
+    Websocket consumer for users interacting with poll sessions.
+    Receives and broadcasts updates for poll questions in real time.
+    """
     async def connect(self):
+        """Joins a group based on poll session ID for receiving real-time updates."""
         self.client_token = self.scope['url_route']['kwargs']['client_token']
         self.session_id = r.get(f'poll:token_map:{self.client_token}')
 
@@ -197,17 +201,21 @@ class PollConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        """Leaves the group when the WebSocket connection is closed."""
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
     async def receive(self, text_data=None, bytes_data=None):
+        """
+        Handles incoming messages from the client and dispatches them to the group.
+        Supports publishing a question and unpublishing a question to OBS overlay and votes view.
+        """
         data = json.loads(text_data)
 
         if data.get('type') == 'publish_question':
             question_id = data['question_id']
-
             redis_key = f'poll:question:{question_id}'
             question_data = await sync_to_async(r.get)(redis_key)
             if not question_data:
@@ -261,8 +269,8 @@ class PollConsumer(AsyncWebsocketConsumer):
             )
 
 
-
     async def publish_question(self, event):
+        """Broadcasts a publishing trigger for a question to all group members."""
         await self.send(text_data=json.dumps({
             'type': 'publish_question',
             'question_id': event['question_id'],
@@ -271,6 +279,7 @@ class PollConsumer(AsyncWebsocketConsumer):
 
 
     async def unpublish_question(self, event):
+        """Broadcasts an unpublishing trigger for a question to all group members."""
         await self.send(text_data=json.dumps({
             'type': 'unpublish_question',
         }))

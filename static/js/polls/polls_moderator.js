@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const submitBtn = document.getElementById('submit-question');
     const moderatorToken = window.location.pathname.split('/')[3];
 
+    // Connect to WebSocket to receive live updates for the overlay
     const socket = new WebSocket(
         'ws://' + window.location.host + `/ws/polls/${moderatorToken}/`
     );
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     socket.onerror = (e) => console.error('WebSocket error:', e);
     socket.onclose = (e) => console.warn('WebSocket closed:', e);
 
+    // Handle messages received via WebSocket
     socket.onmessage = (e) => {
         try{
             const data = JSON.parse(e.data);
@@ -35,8 +37,12 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     };
 
+    //Initial load of questions
     await loadExistingQuestions();
 
+    /**
+    * Loads all previously submitted questions for the current session from the backend.
+    */
     async function loadExistingQuestions() {
         try {
             const response = await fetch(`/api/polls/m/${moderatorToken}/`);
@@ -53,6 +59,9 @@ document.addEventListener('DOMContentLoaded', async() => {
     }
 
 
+    /**
+     * Adds a new answer input field dynamically to the UI.
+     */
     addAnswerBtn.addEventListener('click', () => {
         const input = document.createElement('input');
         input.className = 'answer-input';
@@ -62,6 +71,9 @@ document.addEventListener('DOMContentLoaded', async() => {
     });
 
 
+    /**
+    * Submits a new poll question and its possible answers to the backend.
+    */
     submitBtn.addEventListener('click', async() => {
         const question = questionInput.value.trim();
         const answers = Array.from(answersWrapper.querySelectorAll('input'))
@@ -98,7 +110,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     });
 
-
+    /**
+     * Adds a question block to the DOM with answer list and control buttons.
+     */
     function addQuestionToDom(questionId, questionText, answers) {
         const div = document.createElement('div');
         div.className = 'question';
@@ -116,7 +130,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         pollsContainer.appendChild(div);
     }
 
-
+    /**
+     * Sends a WebSocket message to publish the selected question.
+     */
     window.publish = (questionId) => {
         socket.send(JSON.stringify({
             type: 'publish_question',
@@ -134,6 +150,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     }
 
+    /**
+     * Sends a WebSocket message to unpublish the currently visible question.
+     */
     window.unpublish = (questionId) => {
         socket.send(JSON.stringify({
             type: 'unpublish_question',
@@ -147,6 +166,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         });
     }
 
+    /**
+     * Sends a DELETE request to remove the selected question from the backend and UI.
+     */
     window.removeQuestion = async function (questionId) {
         const confirmed = confirm('Are you sure you want to delete this question?');
         if (!confirmed) return;
