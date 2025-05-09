@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--7h0i48=___&bt87x39o-2c+^!3-q_)-!o_pmbv*zc)y*nh_71'
+SECRET_KEY = config('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DJANGO_DEBUG', cast=bool)
@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 
 DJANGO_SECRET_KEY = config('DJANGO_SECRET_KEY')
-REDIS_URL = config('REDIS_URL')
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
 
 
 # Application definition
@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'playerhub',
     'channels',
     'rest_framework',
-    'corsheaders',
     'django_extensions'
 ]
 
@@ -114,7 +113,6 @@ DATABASES = {
     }
 }
 
-REDIS_URL = 'redis://127.0.0.1:6379/0'
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
