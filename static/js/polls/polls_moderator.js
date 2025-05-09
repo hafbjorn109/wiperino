@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                 const el = document.getElementById(data.question_id);
                 if (el) el.classList.add('active');
             }
+
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
