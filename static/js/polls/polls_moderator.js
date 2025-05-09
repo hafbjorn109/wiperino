@@ -10,18 +10,20 @@ document.addEventListener('DOMContentLoaded', async() => {
         'ws://' + window.location.host + `/ws/polls/${moderatorToken}/`
     );
 
-    socket.onopen = () => console.log("WebSocket connected");
-    socket.onerror = (e) => console.error("WebSocket error:", e);
+    socket.onopen = () => console.log('WebSocket connected');
+    socket.onerror = (e) => console.error('WebSocket error:', e);
+    socket.onclose = (e) => console.warn('WebSocket closed:', e);
+
     socket.onmessage = (e) => {
         try{
             const data = JSON.parse(e.data);
-            console.log("Received:", data);
+            console.log('Received:', data);
 
-            if (data.type === "error") {
-                alert("Error: " + data.error);
+            if (data.type === 'error') {
+                alert('Error: ' + data.error);
             }
 
-            if (data.type === "publish_question") {
+            if (data.type === 'publish_question') {
                 document.querySelectorAll('.question').forEach(div => div.classList.remove('active'));
                 const el = document.getElementById(data.question_id);
                 if (el) el.classList.add('active');
@@ -57,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         input.placeholder = `Answer ${answersWrapper.children.length + 1}`;
         answersWrapper.appendChild(input);
     });
+
 
     submitBtn.addEventListener('click', async() => {
         const question = questionInput.value.trim();
@@ -94,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     });
 
+
     function addQuestionToDom(questionId, questionText, answers) {
         const div = document.createElement('div');
         div.className = 'question';
@@ -102,32 +106,37 @@ document.addEventListener('DOMContentLoaded', async() => {
         div.innerHTML = `
           <h3>${questionText}</h3>
           <ul>${answersForDom}</ul>
-          <div class="button-container">
-            <button class="btn-small" onclick="publish('${questionId}')">Publish</button>
-            <button class="btn-small red" onclick="removeQuestion('${questionId}')">Delete</button>
+          <div class='button-container'>
+            <button class='btn-small' onclick="publish('${questionId}')">Publish</button>
+            <button class='btn-small red' onclick="removeQuestion('${questionId}')">Delete</button>
           </div>
         `;
         pollsContainer.appendChild(div);
     }
 
+
     window.publish = (questionId) => {
         socket.send(JSON.stringify({
-            type: "publish_question",
+            type: 'publish_question',
             question_id: questionId
         }));
     }
 
+
     window.removeQuestion = async function (questionId) {
-        const confirmed = confirm("Are you sure you want to delete this question?");
+        const confirmed = confirm('Are you sure you want to delete this question?');
         if (!confirmed) return;
 
         try {
             const response = await fetch(`/api/polls/m/${moderatorToken}/delete/${questionId}/`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
             });
 
             if (!response.ok) {
-                alert("Failed to delete question.");
+                alert('Failed to delete question.');
                 return;
             }
 
@@ -135,7 +144,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             if (el) el.remove();
         } catch (err) {
             console.error(err);
-            alert("Something went wrong.");
+            alert('Something went wrong.');
         }
     }
 

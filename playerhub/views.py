@@ -294,14 +294,23 @@ class OverlayRunView(TemplateView):
     """
     template_name = 'playerhub/overlay_run.html'
 
+
 class ModeratorPollsView(TemplateView):
     """
     View responsible for displaying dashboard for creating polls.
     """
     template_name = 'polls/polls_moderator.html'
 
+
 class CreatePollSessionView(TemplateView):
     """
     View responsible for displaying dashboard for creating a new poll.
     """
     template_name = 'polls/create_poll_session.html'
+
+
+class OverlayPollView(TemplateView):
+    """
+    View responsible for displaying an overlay of a poll for OBS streaming.
+    """
+    template_name = 'polls/overlay_poll.html'

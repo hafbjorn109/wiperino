@@ -7,9 +7,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import UntypedToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-
-
 User = get_user_model()
+
 
 @database_sync_to_async
 def get_user(user_id):
@@ -20,7 +19,7 @@ def get_user(user_id):
 
 
 class JWTAuthMiddleware(BaseMiddleware):
-    async def __call__(self, scope, receive, send) :
+    async def __call__(self, scope, receive, send):
         query_string = parse_qs(scope['query_string'].decode())
         token = query_string.get('token', [None])[0]
 

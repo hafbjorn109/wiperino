@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="dashboard">
+    <div class="form-section">
+        <h1 id="overlay-question" class="hidden"></h1>
+        <ul id="overlay-answers" class="hidden"></ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/polls/overlay_poll.js' %}"></script>
+{% endblock %}

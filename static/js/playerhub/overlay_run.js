@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         'ws://' + window.location.host + `/ws/overlay/runs/${runId}/`
     );
 
-    socket.onopen = () => console.log("WebSocket connected");
-    socket.onerror = (e) => console.error("WebSocket error:", e);
-    socket.onclose = (e) => console.warn("WebSocket closed:", e);
+    socket.onopen = () => console.log('WebSocket connected');
+    socket.onerror = (e) => console.error('WebSocket error:', e);
+    socket.onclose = (e) => console.warn('WebSocket closed:', e);
 
     // Handle messages received via WebSocket
     socket.onmessage = (e) => {

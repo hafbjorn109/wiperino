@@ -1,19 +1,3 @@
-"""
-URL configuration for wiperino project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path
 from playerhub import views as playerhub_views
@@ -35,15 +19,22 @@ urlpatterns = [
     path('api/runs/<int:run_id>/timers/<int:timer_id>/',
          playerhub_views.TimerView.as_view(), name='api-timer'),
     path('api/games/', playerhub_views.GameListView.as_view(), name='api-games'),
-    path('api/games/<int:game_id>/', playerhub_views.GameView.as_view(), name='api-game'),
-    path("public-api/runs/<int:pk>/", playerhub_views.PublicRunView.as_view(), name="public-run-detail"),
-    path("public-api/runs/<int:run_id>/wipecounters/", playerhub_views.PublicWipecounterListView.as_view(), name="public-wipecounters-list"),
+    path('api/games/<int:game_id>/',
+         playerhub_views.GameView.as_view(), name='api-game'),
+    path("public-api/runs/<int:pk>/",
+         playerhub_views.PublicRunView.as_view(), name="public-run-detail"),
+    path("public-api/runs/<int:run_id>/wipecounters/",
+         playerhub_views.PublicWipecounterListView.as_view(), name="public-wipecounters-list"),
 
     # API endpoints - polls
-    path('api/polls/create_session/', playerhub_views.CreatePollSessionAPIView.as_view(), name='api-polls-create'),
-    path('api/polls/m/<str:moderator_token>/add_poll/', playerhub_views.AddPollToSessionView.as_view(), name='add_poll'),
-    path('api/polls/m/<str:moderator_token>/', playerhub_views.PollQuestionsListView.as_view(), name='polls-list'),
-    path('api/polls/m/<str:moderator_token>/delete/<str:question_id>/', playerhub_views.DeletePollQuestionView.as_view(), name='delete-poll-question'),
+    path('api/polls/create_session/',
+         playerhub_views.CreatePollSessionAPIView.as_view(), name='api-polls-create'),
+    path('api/polls/m/<str:moderator_token>/add_poll/',
+         playerhub_views.AddPollToSessionView.as_view(), name='add_poll'),
+    path('api/polls/m/<str:moderator_token>/',
+         playerhub_views.PollQuestionsListView.as_view(), name='polls-list'),
+    path('api/polls/m/<str:moderator_token>/delete/<str:question_id>/',
+         playerhub_views.DeletePollQuestionView.as_view(), name='delete-poll-question'),
 
     # API endpoints - user authorization
     path('api/register/', users_views.RegisterView.as_view(), name='api-register'),
@@ -64,6 +55,7 @@ urlpatterns = [
     # HTML views - polls
     path('polls/create/', playerhub_views.CreatePollSessionView.as_view(), name='polls-create'),
     path('polls/m/<str:moderator_token>/', playerhub_views.ModeratorPollsView.as_view(), name='polls-moderator'),
+    path('polls/o/<str:overlay_token>/', playerhub_views.OverlayPollView.as_view(), name='polls-overlay'),
 
 
 

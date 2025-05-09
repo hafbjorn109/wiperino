@@ -10,6 +10,7 @@ class RunSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
     game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all())
     game_name = serializers.ReadOnlyField(source='game.name', read_only=True)
+
     class Meta:
         model = Run
         fields = '__all__'
@@ -21,6 +22,7 @@ class WipeCounterSerializer(serializers.ModelSerializer):
     Used to serialize and deserialize death counter data per game segment.
     """
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
     class Meta:
         model = WipeCounter
         fields = '__all__'
@@ -32,6 +34,7 @@ class TimerSerializer(serializers.ModelSerializer):
     Used to handle the elapsed time tracking of game segments.
     """
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
     class Meta:
         model = Timer
         fields = '__all__'

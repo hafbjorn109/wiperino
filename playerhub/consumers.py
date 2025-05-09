@@ -3,8 +3,8 @@ import redis
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
-
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+
 
 class WipecounterConsumer(AsyncWebsocketConsumer):
     """
@@ -228,7 +228,7 @@ class PollConsumer(AsyncWebsocketConsumer):
 
             session_data = json.loads(session_data_raw)
             session_data['published_question_id'] = question_id
-            await sync_to_async (r.set)(session_key, json.dumps(session_data), ex=86400)
+            await sync_to_async(r.set)(session_key, json.dumps(session_data), ex=86400)
 
             await self.channel_layer.group_send(
                 self.room_group_name,
