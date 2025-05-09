@@ -10,8 +10,6 @@ from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, 
     CreatePollSessionSerializer, PollQuestionSerializer
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
@@ -140,7 +138,6 @@ class GameView(generics.RetrieveUpdateDestroyAPIView):
         return get_object_or_404(Game, id=self.kwargs['game_id'])
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class CreatePollSessionAPIView(generics.CreateAPIView):
     serializer_class = CreatePollSessionSerializer
     permission_classes = [AllowAny]
@@ -172,7 +169,6 @@ class CreatePollSessionAPIView(generics.CreateAPIView):
         )
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class AddPollToSessionView(generics.CreateAPIView):
     serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
@@ -209,7 +205,6 @@ class AddPollToSessionView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class PollQuestionsListView(generics.ListAPIView):
     serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
@@ -233,7 +228,6 @@ class PollQuestionsListView(generics.ListAPIView):
         return Response(queryset)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class DeletePollQuestionView(generics.DestroyAPIView):
     serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
