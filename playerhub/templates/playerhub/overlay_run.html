@@ -1,4 +1,5 @@
 <!doctype html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -76,6 +77,6 @@
         <p id="total-wipes"></p>
         <p id="run-status"></p>
     </div>
-    <script src="js/playerhub/overlay_run.js"></script>
+    <script src="{% static 'js/playerhub/overlay_run.js' %}"></script>
 </body>
 </html>
