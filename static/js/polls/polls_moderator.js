@@ -108,7 +108,8 @@ document.addEventListener('DOMContentLoaded', async() => {
           <h3>${questionText}</h3>
           <ul>${answersForDom}</ul>
           <div class='button-container'>
-            <button class='btn-small' onclick="publish('${questionId}')">Publish</button>
+            <button class='btn-small publish-btn' onclick="publish('${questionId}')">Publish</button>
+            <button class='btn-small unpublish-btn hidden' onclick="unpublish('${questionId}')">Unpublish</button>
             <button class='btn-small red' onclick="removeQuestion('${questionId}')">Delete</button>
           </div>
         `;
@@ -121,8 +122,30 @@ document.addEventListener('DOMContentLoaded', async() => {
             type: 'publish_question',
             question_id: questionId
         }));
+
+        document.querySelectorAll('.publish-btn').forEach(btn => btn.classList.remove('hidden'));
+        document.querySelectorAll('.unpublish-btn').forEach(btn => btn.classList.add('hidden'));
+
+
+        const div = document.getElementById(questionId);
+        if (div) {
+            div.querySelector('.publish-btn').classList.add('hidden');
+            div.querySelector('.unpublish-btn').classList.remove('hidden');
+        }
     }
 
+    window.unpublish = (questionId) => {
+        socket.send(JSON.stringify({
+            type: 'unpublish_question',
+            question_id: questionId
+        }));
+
+
+        document.querySelectorAll('.question').forEach(div => {
+            div.querySelector('.publish-btn').classList.remove('hidden');
+            div.querySelector('.unpublish-btn').classList.add('hidden');
+        });
+    }
 
     window.removeQuestion = async function (questionId) {
         const confirmed = confirm('Are you sure you want to delete this question?');
@@ -148,5 +171,4 @@ document.addEventListener('DOMContentLoaded', async() => {
             alert('Something went wrong.');
         }
     }
-
 })

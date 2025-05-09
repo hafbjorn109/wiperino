@@ -180,8 +180,8 @@ class OverlayConsumer(AsyncWebsocketConsumer):
 class PollConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
-        self.moderator_token = self.scope['url_route']['kwargs']['moderator_token']
-        self.session_id = r.get(f'poll:token_map:{self.moderator_token}')
+        self.client_token = self.scope['url_route']['kwargs']['client_token']
+        self.session_id = r.get(f'poll:token_map:{self.client_token}')
 
         if not self.session_id:
             await self.close()
@@ -239,9 +239,38 @@ class PollConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        elif data.get('type') == 'unpublish_question':
+            session_key = f'poll:session:{self.session_id}'
+            session_data_raw = await sync_to_async(r.get)(session_key)
+            if not session_data_raw:
+                await self.send(text_data=json.dumps({
+                    'type': 'error',
+                    'error': 'Session not found'
+                }))
+                return
+
+            session_data = json.loads(session_data_raw)
+            session_data['published_question_id'] = None
+            await sync_to_async(r.set)(session_key, json.dumps(session_data), ex=86400)
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'unpublish_question',
+                }
+            )
+
+
+
     async def publish_question(self, event):
         await self.send(text_data=json.dumps({
             'type': 'publish_question',
             'question_id': event['question_id'],
             'question_data': event['question_data']
+        }))
+
+
+    async def unpublish_question(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'unpublish_question',
         }))

@@ -27,6 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 answersEl.classList.remove('hidden');
             }
+
+            if (data.type === 'unpublish_question') {
+                questionEl.textContent = '';
+                questionEl.classList.add('hidden');
+                answersEl.innerHTML = '';
+                answersEl.classList.add('hidden');
+            }
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
