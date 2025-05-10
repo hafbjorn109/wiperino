@@ -217,6 +217,14 @@ class PollConsumer(AsyncWebsocketConsumer):
         """
         data = json.loads(text_data)
 
+        if data.get('type') in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
+            error_data = {
+                'type': 'error',
+                'error': 'Only moderators can perform this action'
+            }
+            await self.send(text_data=json.dumps(error_data))
+            return
+
         if data.get('type') == 'publish_question':
             question_id = data['question_id']
             redis_key = f'poll:question:{question_id}'
