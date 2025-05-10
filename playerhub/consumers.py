@@ -1,8 +1,11 @@
 import json
 import redis
+from rest_framework import serializers
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
+from playerhub.serializers import  PollVoteSerializer
 from asgiref.sync import sync_to_async
+
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
@@ -269,35 +272,58 @@ class PollConsumer(AsyncWebsocketConsumer):
             )
 
         elif data.get('type') == 'vote':
-            question_id = data['question_id']
-            answer = data['answer']
+            serializer = PollVoteSerializer(data=data)
+            try:
+                serializer.is_valid(raise_exception=True)
+            except serializers.ValidationError as e:
+                error_data = {
+                    'type': 'error',
+                    'error': e.detail
+                }
+                await self.send(text_data=json.dumps(error_data))
+                return
 
-            question_key = f'poll:question:{question_id}'
-            question_data_raw = await sync_to_async(r.get)(question_key)
+            validated_data = serializer.validated_data
+            question_id = validated_data['question_id']
+            answer = validated_data['answer']
+
+            question_data_raw = await sync_to_async(r.get)(f'poll:question:{question_id}')
+
             if not question_data_raw:
-                await self.send(text_data=json.dumps({
+                error_data = {
                     'type': 'error',
                     'error': 'Question not found'
-                }))
+                }
+                await self.send(text_data=json.dumps(error_data))
                 return
 
             question = json.loads(question_data_raw)
-            if answer not in question['answers']:
-                await self.send(text_data=json.dumps({
+
+            if answer not in question.get('answers', []):
+                error_data = {
                     'type': 'error',
-                    'error': 'Invalid answer'
-                }))
+                    'error': 'Answer not found'
+                }
+                await self.send(text_data=json.dumps(error_data))
                 return
 
             question['votes'][answer] += 1
-            await sync_to_async(r.set)(question_key, json.dumps(question), ex=86400)
+
+            await sync_to_async(r.set)(f'poll:question:{question_id}',
+                                       json.dumps(question),
+                                       ex=86400)
+
+            vote_data = {
+                'type': 'vote',
+                'question_id': question_id,
+                'votes': question['votes']
+            }
 
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
-                    'type': 'vote',
-                    'question_id': question_id,
-                    'votes': question['votes']
+                    'type': 'vote_update',
+                    'message': vote_data
                 }
             )
 
@@ -319,8 +345,4 @@ class PollConsumer(AsyncWebsocketConsumer):
 
     async def vote_update(self, event):
         """Broadcasts a vote update for a question to all group members."""
-        await self.send(text_data=json.dumps({
-            'type': 'vote_update',
-            'question_id': event['question_id'],
-            'votes': event['votes']
-        }))
+        await self.send(text_data=event['message'])

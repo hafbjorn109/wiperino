@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from playerhub import views as playerhub_views
+from playerhub.views import PollQuestionsListView
 from users import views as users_views
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -29,12 +30,13 @@ urlpatterns = [
     # API endpoints - polls
     path('api/polls/create_session/',
          playerhub_views.CreatePollSessionAPIView.as_view(), name='api-polls-create'),
-    path('api/polls/m/<str:moderator_token>/add_poll/',
-         playerhub_views.AddPollToSessionView.as_view(), name='add_poll'),
-    path('api/polls/m/<str:moderator_token>/',
+    path('api/polls/m/<str:client_token>/add_poll/',
+         playerhub_views.PollQuestionsListView.as_view(), name='moderator-polls'),
+    path('api/polls/m/<str:client_token>/',
          playerhub_views.PollQuestionsListView.as_view(), name='polls-list'),
-    path('api/polls/m/<str:moderator_token>/delete/<str:question_id>/',
+    path('api/polls/m/<str:client_token>/delete/<str:question_id>/',
          playerhub_views.DeletePollQuestionView.as_view(), name='delete-poll-question'),
+    path('api/polls/v/<str:client_token>/', PollQuestionsListView.as_view(), name='viewer-polls'),
 
     # API endpoints - user authorization
     path('api/register/', users_views.RegisterView.as_view(), name='api-register'),

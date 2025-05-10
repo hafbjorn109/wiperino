@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
 
         try {
-            const response = await fetch(`/api/polls/m/${moderatorToken}/add_poll/`, {
+            const response = await fetch(`/api/polls/m/${moderatorToken}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

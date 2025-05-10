@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Run, WipeCounter, Timer, Game
+from django.conf import settings
 
 
 class RunSerializer(serializers.ModelSerializer):
@@ -64,9 +65,20 @@ class PollQuestionSerializer(serializers.Serializer):
     """
     Serializer for creating a new poll question.
     """
-    poll_id = serializers.CharField(read_only=True)
+    id = serializers.CharField(read_only=True)
     question = serializers.CharField(max_length=300)
     answers = serializers.ListField(
         child=serializers.CharField(max_length=100),
         min_length=2,
     )
+    votes = serializers.DictField(
+        child=serializers.IntegerField(), required=False, read_only=True
+    )
+
+
+class PollVoteSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new poll vote.
+    """
+    question_id = serializers.CharField(max_length=100)
+    answer = serializers.CharField(max_length=30)
