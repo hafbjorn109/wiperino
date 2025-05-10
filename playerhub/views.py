@@ -229,7 +229,6 @@ class PollQuestionsListView(generics.ListAPIView):
 
 
 class DeletePollQuestionView(generics.DestroyAPIView):
-    serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
 
     def destroy(self, request, *args, **kwargs):
@@ -245,6 +244,7 @@ class DeletePollQuestionView(generics.DestroyAPIView):
         r.lrem(f'poll:session:{session_id}:questions', 0, question_id)
         r.delete(f'poll:question:{question_id}')
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class MainDashboardView(TemplateView):
     """
