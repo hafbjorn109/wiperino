@@ -330,6 +330,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             vote_data = {
                 'type': 'vote',
                 'question_id': question_id,
+                'answers': question['answers'],
                 'votes': question['votes']
             }
 

@@ -80,8 +80,14 @@ document.addEventListener('DOMContentLoaded', async() => {
         const answers = Array.from(answersWrapper.querySelectorAll('input'))
         .map(input => input.value.trim())
         .filter(Boolean);
-        if (!question || answers.length < 2) {
-            alert('Question cannot be empty and must have at least 2 answers.');
+        const tooLong = answers.find(a => a.length > 30);
+        if (tooLong) {
+            alert(`Each answer must be at most 30 characters. Too long: ${tooLong}`);
+            return;
+        }
+        if (!question || answers.length < 2 || question.length > 300) {
+            alert('Question cannot be empty and ' +
+                'must have at least 2 answers or no more than 300 characters.');
             return;
         }
 
