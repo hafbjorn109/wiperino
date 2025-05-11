@@ -47,11 +47,11 @@ def test_add_poll(client):
 
     assert response.status_code == 201, 'Poll was not created'
     response_json = response.json()
-    assert 'question_id' in response_json, 'Question ID was not returned'
+    assert 'id' in response_json, 'Question ID was not returned'
     assert response_json['question'] == data['question']
     assert response_json['answers'] == data['answers']
 
-    redis_key = f'poll:question:{response_json["question_id"]}'
+    redis_key = f'poll:question:{response_json["id"]}'
     stored = r.get(redis_key)
     assert stored is not None, 'Poll was not stored in Redis'
 
@@ -90,10 +90,10 @@ def test_list_poll_questions(client):
 
 def test_delete_poll_question(client):
     session_id = str(uuid.uuid4())
-    moderator_token = f'{session_id}-mod-test'
+    client_token = f'{session_id}-mod-test'
     question_id = 'q-123'
 
-    r.set(f'poll:token_map:{moderator_token}', session_id, ex=60)
+    r.set(f'poll:token_map:{client_token}', session_id, ex=60)
     r.rpush(f'poll:session:{session_id}:questions', question_id)
     r.set(f'poll:question:{question_id}', json.dumps({
         'id': question_id,
@@ -102,9 +102,11 @@ def test_delete_poll_question(client):
         'votes': {'Yes': 0, 'No': 0}
     }), ex=60)
 
-    response = client.delete(f'/api/polls/m/{moderator_token}/{question_id}/')
+    response = client.delete(f'/api/polls/m/{client_token}/delete/{question_id}/')
     assert response.status_code == 204, 'Question was not deleted'
 
+    print("Response code:", response.status_code)
+    print("Remaining keys:", r.keys(f'poll:*{question_id}*'))
     assert r.get(f'poll:question:{question_id}') is None, \
         'Question was not deleted from Redis'
     assert question_id not in r.lrange(
