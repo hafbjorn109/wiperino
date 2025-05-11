@@ -138,9 +138,13 @@ class GameView(generics.RetrieveUpdateDestroyAPIView):
         return get_object_or_404(Game, id=self.kwargs['game_id'])
 
 
-class CreatePollSessionAPIView(generics.CreateAPIView):
+class CreatePollSessionAPIView(generics.ListCreateAPIView):
+    """
+    API view to get list of poll sessions or create a new session.
+    """
     serializer_class = CreatePollSessionSerializer
     permission_classes = [AllowAny]
+
 
     def create(self, request, *args, **kwargs):
         print('user', request.user)
@@ -169,18 +173,46 @@ class CreatePollSessionAPIView(generics.CreateAPIView):
         )
 
 
-class AddPollToSessionView(generics.CreateAPIView):
+class PollQuestionsListView(generics.ListCreateAPIView):
+    """
+    API view to get list of questions in poll or
+    create a new question and add to Poll.
+    """
     serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
 
-    def create(self, request, *args, **kwargs):
-        moderator_token = kwargs['moderator_token']
+    def get_session_id(self):
+        token = self.kwargs.get('client_token')
+        return r.get(f'poll:token_map:{token}')
 
-        session_id = r.get(f'poll:token_map:{moderator_token}')
+    def get_queryset(self):
+        session_id = self.get_session_id()
         if not session_id:
-            return Response(
-                {'error': 'Invalid moderator token'}, status=status.HTTP_404_NOT_FOUND
-            )
+            return []
+
+        question_ids = r.lrange(f'poll:session:{session_id}:questions', 0, -1)
+        questions = []
+        for qid in question_ids:
+            q_raw = r.get(f'poll:question:{qid}')
+            if q_raw:
+                questions.append(json.loads(q_raw))
+        return questions
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        return Response(queryset)
+
+    def create(self, request, *args, **kwargs):
+        session_id = self.get_session_id()
+        client_token = self.kwargs.get('client_token')
+
+        if not session_id:
+            error_data = {'error': 'Invalid token'}
+            return Response(error_data, status=status.HTTP_404_NOT_FOUND)
+
+        if not client_token or '-mod' not in client_token:
+            error_data = {'error': 'Only moderator can submit questions.'}
+            return Response(error_data, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -198,41 +230,15 @@ class AddPollToSessionView(generics.CreateAPIView):
         r.set(f'poll:question:{question_id}', json.dumps(question_record), ex=86400)
         r.rpush(f'poll:session:{session_id}:questions', question_id)
 
-        return Response({
-            'question_id': question_id,
-            'question': question_data['question'],
-            'answers': question_data['answers'],
-        }, status=status.HTTP_201_CREATED)
+        out_serializer = self.get_serializer(question_record)
+        return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
-
-class PollQuestionsListView(generics.ListAPIView):
+class DeletePollQuestionView(generics.DestroyAPIView):
     serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        moderator_token = self.kwargs['moderator_token']
-        session_id = r.get(f'poll:token_map:{moderator_token}')
-        if not session_id:
-            return []
-
-        question_ids = r.lrange(f'poll:session:{session_id}:questions', 0, -1)
-        questions = []
-        for qid in question_ids:
-            g_data = r.get(f'poll:question:{qid}')
-            if g_data:
-                questions.append(json.loads(g_data))
-        return questions
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        return Response(queryset)
-
-
-class DeletePollQuestionView(generics.DestroyAPIView):
-    permission_classes = [AllowAny]
-
     def destroy(self, request, *args, **kwargs):
-        moderator_token = kwargs['moderator_token']
+        moderator_token = kwargs['client_token']
         question_id = kwargs['question_id']
         session_id = r.get(f'poll:token_map:{moderator_token}')
 
@@ -244,6 +250,7 @@ class DeletePollQuestionView(generics.DestroyAPIView):
         r.lrem(f'poll:session:{session_id}:questions', 0, question_id)
         r.delete(f'poll:question:{question_id}')
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class MainDashboardView(TemplateView):
@@ -308,3 +315,10 @@ class OverlayPollView(TemplateView):
     View responsible for displaying an overlay of a poll for OBS streaming.
     """
     template_name = 'polls/overlay_poll.html'
+
+
+class ViewerPollView(TemplateView):
+    """
+    View responsible for displaying list of questions for viewers to vote.
+    """
+    template_name = 'polls/viewer_poll.html'

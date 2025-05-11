@@ -335,3 +335,13 @@ body {
   border-radius: 6px;
   padding: 1rem;
 }
+
+.answer-input,
+.question-text {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}

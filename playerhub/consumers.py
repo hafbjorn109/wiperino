@@ -1,8 +1,11 @@
 import json
 import redis
+from rest_framework import serializers
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
+from playerhub.serializers import  PollVoteSerializer
 from asgiref.sync import sync_to_async
+
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
@@ -213,11 +216,22 @@ class PollConsumer(AsyncWebsocketConsumer):
         Supports publishing a question and unpublishing a question to OBS overlay and votes view.
         """
         data = json.loads(text_data)
+        print('[WS] Received data: ', data)
+
+        if data.get('type') in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
+            error_data = {
+                'type': 'error',
+                'error': 'Only moderators can perform this action'
+            }
+            await self.send(text_data=json.dumps(error_data))
+            return
 
         if data.get('type') == 'publish_question':
             question_id = data['question_id']
             redis_key = f'poll:question:{question_id}'
+
             question_data = await sync_to_async(r.get)(redis_key)
+
             if not question_data:
                 await self.send(text_data=json.dumps({
                     'type': 'error',
@@ -268,6 +282,93 @@ class PollConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        elif data.get('type') == 'vote':
+            print('[WS] Trying to validate vote:', data)
+            serializer = PollVoteSerializer(data=data)
+            try:
+                serializer.is_valid(raise_exception=True)
+            except serializers.ValidationError as e:
+                error_data = {
+                    'type': 'error',
+                    'error': e.detail
+                }
+                await self.send(text_data=json.dumps(error_data))
+                return
+
+            validated_data = serializer.validated_data
+            question_id = validated_data['question_id']
+            answer = validated_data['answer']
+
+            question_data_raw = await sync_to_async(r.get)(f'poll:question:{question_id}')
+
+            if not question_data_raw:
+                error_data = {
+                    'type': 'error',
+                    'error': 'Question not found'
+                }
+                await self.send(text_data=json.dumps(error_data))
+                return
+
+            question = json.loads(question_data_raw)
+
+            if answer not in question.get('answers', []):
+                error_data = {
+                    'type': 'error',
+                    'error': 'Answer not found'
+                }
+                await self.send(text_data=json.dumps(error_data))
+                return
+
+            question['votes'][answer] += 1
+
+            await sync_to_async(r.set)(f'poll:question:{question_id}',
+                                       json.dumps(question),
+                                       ex=86400)
+
+            print(f'[WS] Updated Redis votes for {question_id}:', question['votes'])
+
+            vote_data = {
+                'type': 'vote',
+                'question_id': question_id,
+                'votes': question['votes']
+            }
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'vote_update',
+                    'message': vote_data
+                }
+            )
+
+        elif data.get('type') == 'sync_questions' and '-mod' in self.client_token:
+            questions_ids = r.lrange(f'poll:session:{self.session_id}:questions', 0, -1)
+            for qid in questions_ids:
+                q_raw = r.get(f'poll:question:{qid}')
+                if q_raw:
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'new_question',
+                            'message': {
+                                'type': 'new_question',
+                                'question': json.loads(q_raw)
+                            }
+                        }
+                    )
+
+        elif data.get('type') == 'delete_question' and '-mod' in self.client_token:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'delete_question',
+                    'message': {
+                        'type': 'delete_question',
+                        'question_id': data['question_id']
+                    }
+                }
+            )
+
 
     async def publish_question(self, event):
         """Broadcasts a publishing trigger for a question to all group members."""
@@ -283,3 +384,18 @@ class PollConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'unpublish_question',
         }))
+
+
+    async def vote_update(self, event):
+        """Broadcasts a vote update for a question to all group members."""
+        await self.send(text_data=json.dumps(event['message']))
+
+
+    async def new_question(self, event):
+        """Broadcasts a new question to all group members."""
+        await self.send(text_data=json.dumps(event['message']))
+
+
+    async def delete_question(self, event):
+        """Broadcasts a delete question to all group members."""
+        await self.send(text_data=json.dumps(event['message']))

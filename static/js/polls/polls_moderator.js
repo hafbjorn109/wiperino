@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const submitBtn = document.getElementById('submit-question');
     const moderatorToken = window.location.pathname.split('/')[3];
 
+
     // Connect to WebSocket to receive live updates for the overlay
     const socket = new WebSocket(
         'ws://' + window.location.host + `/ws/polls/${moderatorToken}/`
@@ -85,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
 
         try {
-            const response = await fetch(`/api/polls/m/${moderatorToken}/add_poll/`, {
+            const response = await fetch(`/api/polls/m/${moderatorToken}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -99,11 +100,16 @@ document.addEventListener('DOMContentLoaded', async() => {
             }
 
             const data = await response.json();
-            addQuestionToDom(data.question_id, data.question, data.answers);
+            addQuestionToDom(data.id, data.question, data.answers);
             questionInput.value = '';
             answersWrapper.innerHTML = '';
             addAnswerBtn.click();
             addAnswerBtn.click();
+
+            socket.send(JSON.stringify({
+                type: 'sync_questions'
+            }));
+
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
@@ -185,6 +191,11 @@ document.addEventListener('DOMContentLoaded', async() => {
                 alert('Failed to delete question.');
                 return;
             }
+
+            socket.send(JSON.stringify({
+                type: 'delete_question',
+                question_id: questionId,
+            }))
 
             const el = document.getElementById(questionId);
             if (el) el.remove();

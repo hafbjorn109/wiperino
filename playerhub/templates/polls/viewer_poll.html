@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="dashboard">
+    <form id="poll-form">
+        <div id="polls" class="form-section"></div>
+        <button id="submit-votes" class="btn" type="submit">Submit Votes</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/polls/viewer_poll.js' %}"></script>
+{% endblock %}
