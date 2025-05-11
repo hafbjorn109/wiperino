@@ -31,12 +31,12 @@ urlpatterns = [
     path('api/polls/create_session/',
          playerhub_views.CreatePollSessionAPIView.as_view(), name='api-polls-create'),
     path('api/polls/m/<str:client_token>/add_poll/',
-         playerhub_views.PollQuestionsListView.as_view(), name='moderator-polls'),
+         playerhub_views.PollQuestionsListView.as_view(), name='api-moderator-polls'),
     path('api/polls/m/<str:client_token>/',
-         playerhub_views.PollQuestionsListView.as_view(), name='polls-list'),
+         playerhub_views.PollQuestionsListView.as_view(), name='api-polls-list'),
     path('api/polls/m/<str:client_token>/delete/<str:question_id>/',
-         playerhub_views.DeletePollQuestionView.as_view(), name='delete-poll-question'),
-    path('api/polls/v/<str:client_token>/', PollQuestionsListView.as_view(), name='viewer-polls'),
+         playerhub_views.DeletePollQuestionView.as_view(), name='api-delete-poll-question'),
+    path('api/polls/v/<str:client_token>/', PollQuestionsListView.as_view(), name='api-viewer-polls'),
 
     # API endpoints - user authorization
     path('api/register/', users_views.RegisterView.as_view(), name='api-register'),
@@ -58,6 +58,7 @@ urlpatterns = [
     path('polls/create/', playerhub_views.CreatePollSessionView.as_view(), name='polls-create'),
     path('polls/m/<str:moderator_token>/', playerhub_views.ModeratorPollsView.as_view(), name='polls-moderator'),
     path('polls/o/<str:overlay_token>/', playerhub_views.OverlayPollView.as_view(), name='polls-overlay'),
+    path('polls/v/<str:client_token>/', playerhub_views.ViewerPollView.as_view(), name='polls-viewer'),
 
 
 

@@ -34,6 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 answersEl.innerHTML = '';
                 answersEl.classList.add('hidden');
             }
+
+            if (data.type === 'vote') {
+                const currentAnswers = answersEl.querySelectorAll('li');
+                const votes = data.votes;
+
+                currentAnswers.forEach(answer => {
+                    const answerText = answer.textContent.split(' - ')[0];
+                    if (votes.hasOwnProperty(answerText)) {
+                        answer.textContent = `${answerText} - ${votes[answerText]} votes`;
+                    }
+                })
+            }
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');

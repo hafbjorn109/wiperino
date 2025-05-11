@@ -139,6 +139,9 @@ class GameView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CreatePollSessionAPIView(generics.ListCreateAPIView):
+    """
+    API view to get list of poll sessions or create a new session.
+    """
     serializer_class = CreatePollSessionSerializer
     permission_classes = [AllowAny]
 
@@ -171,6 +174,10 @@ class CreatePollSessionAPIView(generics.ListCreateAPIView):
 
 
 class PollQuestionsListView(generics.ListCreateAPIView):
+    """
+    API view to get list of questions in poll or
+    create a new question and add to Poll.
+    """
     serializer_class = PollQuestionSerializer
     permission_classes = [AllowAny]
 
@@ -203,7 +210,7 @@ class PollQuestionsListView(generics.ListCreateAPIView):
             error_data = {'error': 'Invalid token'}
             return Response(error_data, status=status.HTTP_404_NOT_FOUND)
 
-        if not client_token or not client_token.endswith('-mod'):
+        if not client_token or '-mod' not in client_token:
             error_data = {'error': 'Only moderator can submit questions.'}
             return Response(error_data, status=status.HTTP_403_FORBIDDEN)
 
@@ -231,7 +238,7 @@ class DeletePollQuestionView(generics.DestroyAPIView):
     permission_classes = [AllowAny]
 
     def destroy(self, request, *args, **kwargs):
-        moderator_token = kwargs['moderator_token']
+        moderator_token = kwargs['client_token']
         question_id = kwargs['question_id']
         session_id = r.get(f'poll:token_map:{moderator_token}')
 
@@ -308,3 +315,10 @@ class OverlayPollView(TemplateView):
     View responsible for displaying an overlay of a poll for OBS streaming.
     """
     template_name = 'polls/overlay_poll.html'
+
+
+class ViewerPollView(TemplateView):
+    """
+    View responsible for displaying list of questions for viewers to vote.
+    """
+    template_name = 'polls/viewer_poll.html'

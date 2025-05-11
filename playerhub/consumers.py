@@ -216,6 +216,7 @@ class PollConsumer(AsyncWebsocketConsumer):
         Supports publishing a question and unpublishing a question to OBS overlay and votes view.
         """
         data = json.loads(text_data)
+        print('[WS] Received data: ', data)
 
         if data.get('type') in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
             error_data = {
@@ -228,7 +229,9 @@ class PollConsumer(AsyncWebsocketConsumer):
         if data.get('type') == 'publish_question':
             question_id = data['question_id']
             redis_key = f'poll:question:{question_id}'
+
             question_data = await sync_to_async(r.get)(redis_key)
+
             if not question_data:
                 await self.send(text_data=json.dumps({
                     'type': 'error',
@@ -280,6 +283,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             )
 
         elif data.get('type') == 'vote':
+            print('[WS] Trying to validate vote:', data)
             serializer = PollVoteSerializer(data=data)
             try:
                 serializer.is_valid(raise_exception=True)
@@ -321,6 +325,8 @@ class PollConsumer(AsyncWebsocketConsumer):
                                        json.dumps(question),
                                        ex=86400)
 
+            print(f'[WS] Updated Redis votes for {question_id}:', question['votes'])
+
             vote_data = {
                 'type': 'vote',
                 'question_id': question_id,
@@ -334,6 +340,35 @@ class PollConsumer(AsyncWebsocketConsumer):
                     'message': vote_data
                 }
             )
+
+        elif data.get('type') == 'sync_questions' and '-mod' in self.client_token:
+            questions_ids = r.lrange(f'poll:session:{self.session_id}:questions', 0, -1)
+            for qid in questions_ids:
+                q_raw = r.get(f'poll:question:{qid}')
+                if q_raw:
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'new_question',
+                            'message': {
+                                'type': 'new_question',
+                                'question': json.loads(q_raw)
+                            }
+                        }
+                    )
+
+        elif data.get('type') == 'delete_question' and '-mod' in self.client_token:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'delete_question',
+                    'message': {
+                        'type': 'delete_question',
+                        'question_id': data['question_id']
+                    }
+                }
+            )
+
 
     async def publish_question(self, event):
         """Broadcasts a publishing trigger for a question to all group members."""
@@ -353,4 +388,14 @@ class PollConsumer(AsyncWebsocketConsumer):
 
     async def vote_update(self, event):
         """Broadcasts a vote update for a question to all group members."""
-        await self.send(text_data=event['message'])
+        await self.send(text_data=json.dumps(event['message']))
+
+
+    async def new_question(self, event):
+        """Broadcasts a new question to all group members."""
+        await self.send(text_data=json.dumps(event['message']))
+
+
+    async def delete_question(self, event):
+        """Broadcasts a delete question to all group members."""
+        await self.send(text_data=json.dumps(event['message']))
