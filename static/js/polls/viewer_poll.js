@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             }
 
             if (data.type === 'new_question') {
+                console.log('[WS] New question payload:', data.question);
                 renderQuestion(data.question);
             }
 

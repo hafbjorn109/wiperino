@@ -16,7 +16,7 @@ class GameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'playerhub.Game'
 
-    name = factory.Faker('word')
+    name = factory.Sequence(lambda n: f'game_{n}')
 
 
 class RunFactory(factory.django.DjangoModelFactory):

@@ -3,7 +3,8 @@ import redis
 from rest_framework import serializers
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
-from playerhub.serializers import  PollVoteSerializer
+from playerhub.serializers import PollVoteSerializer, PublishedQuestionSerializer, WebSocketErrorSerializer, \
+    VoteUpdateSerializer, NewQuestionSerializer, DeleteQuestionSerializer, UnpublishQuestionSerializer
 from asgiref.sync import sync_to_async
 
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -219,11 +220,11 @@ class PollConsumer(AsyncWebsocketConsumer):
         print('[WS] Received data: ', data)
 
         if data.get('type') in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
-            error_data = {
+            serializer = WebSocketErrorSerializer({
                 'type': 'error',
                 'error': 'Only moderators can perform this action'
-            }
-            await self.send(text_data=json.dumps(error_data))
+            })
+            await self.send(text_data=json.dumps(serializer.data))
             return
 
         if data.get('type') == 'publish_question':
@@ -231,21 +232,24 @@ class PollConsumer(AsyncWebsocketConsumer):
             redis_key = f'poll:question:{question_id}'
 
             question_data = await sync_to_async(r.get)(redis_key)
+            question_data = json.loads(question_data)
 
             if not question_data:
-                await self.send(text_data=json.dumps({
+                serializer = WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Question not found'
-                }))
+                })
+                await self.send(text_data=json.dumps(serializer.data))
                 return
 
             session_key = f'poll:session:{self.session_id}'
             session_data_raw = await sync_to_async(r.get)(session_key)
             if not session_data_raw:
-                await self.send(text_data=json.dumps({
+                serializer = WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Session not found'
-                }))
+                })
+                await self.send(text_data=json.dumps(serializer.data))
                 return
 
             session_data = json.loads(session_data_raw)
@@ -256,8 +260,11 @@ class PollConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     'type': 'publish_question',
-                    'question_id': question_id,
-                    'question_data': question_data
+                    'message': {
+                        'type': 'publish_question',
+                        'question_id': question_id,
+                        'question_data': question_data
+                    }
                 }
             )
 
@@ -265,10 +272,11 @@ class PollConsumer(AsyncWebsocketConsumer):
             session_key = f'poll:session:{self.session_id}'
             session_data_raw = await sync_to_async(r.get)(session_key)
             if not session_data_raw:
-                await self.send(text_data=json.dumps({
+                serializer = WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Session not found'
-                }))
+                })
+                await self.send(text_data=json.dumps(serializer.data))
                 return
 
             session_data = json.loads(session_data_raw)
@@ -285,14 +293,13 @@ class PollConsumer(AsyncWebsocketConsumer):
         elif data.get('type') == 'vote':
             print('[WS] Trying to validate vote:', data)
             serializer = PollVoteSerializer(data=data)
-            try:
-                serializer.is_valid(raise_exception=True)
-            except serializers.ValidationError as e:
-                error_data = {
+            if not serializer.is_valid():
+                error_serializer = WebSocketErrorSerializer({
                     'type': 'error',
-                    'error': e.detail
-                }
-                await self.send(text_data=json.dumps(error_data))
+                    'error': serializer.errors
+                })
+
+                await self.send(text_data=json.dumps(error_serializer.data))
                 return
 
             validated_data = serializer.validated_data
@@ -302,21 +309,21 @@ class PollConsumer(AsyncWebsocketConsumer):
             question_data_raw = await sync_to_async(r.get)(f'poll:question:{question_id}')
 
             if not question_data_raw:
-                error_data = {
+                serializer = WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Question not found'
-                }
-                await self.send(text_data=json.dumps(error_data))
+                })
+                await self.send(text_data=json.dumps(serializer.data))
                 return
 
             question = json.loads(question_data_raw)
 
             if answer not in question.get('answers', []):
-                error_data = {
+                serializer = WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Answer not found'
-                }
-                await self.send(text_data=json.dumps(error_data))
+                })
+                await self.send(text_data=json.dumps(serializer.data))
                 return
 
             question['votes'][answer] += 1
@@ -346,6 +353,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             questions_ids = r.lrange(f'poll:session:{self.session_id}:questions', 0, -1)
             for qid in questions_ids:
                 q_raw = r.get(f'poll:question:{qid}')
+                print('[WS] sending new_question:', json.loads(q_raw))
                 if q_raw:
                     await self.channel_layer.group_send(
                         self.room_group_name,
@@ -373,30 +381,29 @@ class PollConsumer(AsyncWebsocketConsumer):
 
     async def publish_question(self, event):
         """Broadcasts a publishing trigger for a question to all group members."""
-        await self.send(text_data=json.dumps({
-            'type': 'publish_question',
-            'question_id': event['question_id'],
-            'question_data': event['question_data']
-        }))
+        serializer = PublishedQuestionSerializer(event['message'])
+        await self.send(text_data=json.dumps(serializer.data))
 
 
     async def unpublish_question(self, event):
         """Broadcasts an unpublishing trigger for a question to all group members."""
-        await self.send(text_data=json.dumps({
-            'type': 'unpublish_question',
-        }))
+        serializer = UnpublishQuestionSerializer({'type': 'unpublish_question'})
+        await self.send(text_data=json.dumps(serializer.data))
 
 
     async def vote_update(self, event):
         """Broadcasts a vote update for a question to all group members."""
-        await self.send(text_data=json.dumps(event['message']))
+        serializer = VoteUpdateSerializer(event['message'])
+        await self.send(text_data=json.dumps(serializer.data))
 
 
     async def new_question(self, event):
         """Broadcasts a new question to all group members."""
-        await self.send(text_data=json.dumps(event['message']))
+        serializer = NewQuestionSerializer(event['message'])
+        await self.send(text_data=json.dumps(serializer.data))
 
 
     async def delete_question(self, event):
         """Broadcasts a delete question to all group members."""
-        await self.send(text_data=json.dumps(event['message']))
+        serializer = DeleteQuestionSerializer(event['message'])
+        await self.send(text_data=json.dumps(serializer.data))

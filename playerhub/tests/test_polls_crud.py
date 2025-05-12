@@ -103,7 +103,7 @@ def test_delete_poll_question(client):
     }), ex=60)
 
     response = client.delete(f'/api/polls/m/{client_token}/delete/{question_id}/')
-    assert response.status_code == 204, 'Question was not deleted'
+    assert response.status_code == 200, 'Question was not deleted'
 
     print("Response code:", response.status_code)
     print("Remaining keys:", r.keys(f'poll:*{question_id}*'))

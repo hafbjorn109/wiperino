@@ -87,11 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.onclose = (e) => console.warn('WebSocket closed:', e);
 
     socket.onmessage = (e) => {
-        try{
+        try {
             const data = JSON.parse(e.data);
+
             console.log('Received:', data);
+            console.log('[Overlay] typeof event.data:', typeof data);
             if (data.type === 'publish_question') {
-                const question = JSON.parse(data.question_data);
+                const question = data.question_data;
                 questionEl.textContent = question.question;
                 questionEl.classList.remove('hidden');
                 renderChart(question)

@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Run, WipeCounter, Timer, Game
-from django.conf import settings
+from .models import Run, WipeCounter, Timer, Game, MODE_CHOICES
 
 
 class RunSerializer(serializers.ModelSerializer):
@@ -11,10 +10,28 @@ class RunSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
     game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all())
     game_name = serializers.ReadOnlyField(source='game.name', read_only=True)
+    mode = serializers.ChoiceField(choices=MODE_CHOICES)
+    is_finished = serializers.BooleanField()
 
     class Meta:
         model = Run
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'game',
+            'game_name',
+            'mode',
+            'user',
+            'is_finished',
+        ]
+        read_only_fields = ['id', 'user', 'game_name']
+
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Name cannot be empty.")
+        if len(value) > 50:
+            raise serializers.ValidationError("Name must be less than 50 characters.")
+        return value
 
 
 class WipeCounterSerializer(serializers.ModelSerializer):
@@ -23,11 +40,25 @@ class WipeCounterSerializer(serializers.ModelSerializer):
     Used to serialize and deserialize death counter data per game segment.
     """
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    segment_name = serializers.CharField(max_length=50)
+    count = serializers.IntegerField(min_value=0, default=0)
+    is_finished = serializers.BooleanField(default=False)
 
     class Meta:
         model = WipeCounter
-        fields = '__all__'
+        fields = [
+            'id',
+            'run',
+            'segment_name',
+            'count',
+            'is_finished',
+        ]
+        read_only_fields = ['id', 'run']
 
+    def validate_segment_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Segment name cannot be empty.")
+        return value
 
 class TimerSerializer(serializers.ModelSerializer):
     """
@@ -35,10 +66,25 @@ class TimerSerializer(serializers.ModelSerializer):
     Used to handle the elapsed time tracking of game segments.
     """
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    segment_name = serializers.CharField(max_length=50)
+    elapsed_time = serializers.FloatField(required=False, allow_null=True, min_value=0.0)
+    is_finished = serializers.BooleanField(default=False)
 
     class Meta:
         model = Timer
-        fields = '__all__'
+        fields = [
+            'id',
+            'run',
+            'segment_name',
+            'elapsed_time',
+            'is_finished',
+        ]
+        read_only_fields = ['id', 'run']
+
+        def validate_segment_name(self, value):
+            if not value.strip():
+                raise serializers.ValidationError("Segment name cannot be empty.")
+            return value
 
 
 class GameSerializer(serializers.ModelSerializer):
@@ -46,9 +92,18 @@ class GameSerializer(serializers.ModelSerializer):
     Serializer for the Game model.
     Used to handle the creation and retrieval of game instances.
     """
+    name = serializers.CharField(max_length=50)
     class Meta:
         model = Game
-        fields = '__all__'
+        fields = ['id', 'name']
+        read_only_fields = ['id']
+
+        def validate_name(self, value):
+            if not value.strip():
+                raise serializers.ValidationError("Name cannot be empty.")
+            if Game.objects.filter(name__iexact=value).exists():
+                raise serializers.ValidationError("Game with this name already exists.")
+            return value
 
 
 class CreatePollSessionSerializer(serializers.Serializer):
@@ -75,10 +130,107 @@ class PollQuestionSerializer(serializers.Serializer):
         child=serializers.IntegerField(), required=False, read_only=True
     )
 
+    def validate_question(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Question cannot be empty.")
+        return value
+
+    def validate_answers(self, value):
+        cleaned = [ans.strip() for ans in value]
+        if len(cleaned) < 2:
+            raise serializers.ValidationError("Question must have at least 2 answers.")
+        if len(set(cleaned)) != len(cleaned):
+            raise serializers.ValidationError("Question cannot have duplicate answers.")
+        return cleaned
+
 
 class PollVoteSerializer(serializers.Serializer):
     """
     Serializer for creating a new poll vote.
     """
     question_id = serializers.CharField(max_length=100)
-    answer = serializers.CharField(max_length=30)
+    answer = serializers.CharField(max_length=100)
+
+    def validate_question_id(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Question ID cannot be empty.")
+        return value
+
+    def validate_answer(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Answer cannot be empty.")
+        return value
+
+
+class ErrorResponseSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new error response.
+    """
+    error = serializers.CharField()
+
+
+class SuccessResponseSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new success response.
+    """
+    detail = serializers.CharField()
+
+
+class PublishedQuestionSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['publish_question'])
+    question_id = serializers.CharField(max_length=100)
+    question_data = PollQuestionSerializer()
+
+    def validate_question_id(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Question ID cannot be empty.")
+        return value
+
+
+class WebSocketErrorSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['error'])
+    error = serializers.CharField()
+
+
+class VoteUpdateSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['vote'])
+    question_id = serializers.CharField(max_length=100)
+    answers = serializers.ListField(child=serializers.CharField(max_length=100))
+    votes = serializers.DictField(child=serializers.IntegerField(min_value=0))
+
+    def validate_question_id(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Question ID cannot be empty.")
+        return value
+
+    def validate_answers(self, value):
+        if len(value) < 2:
+            raise serializers.ValidationError("Question must have at least 2 answers.")
+        if len(set(value)) != len(value):
+            raise serializers.ValidationError("Question cannot have duplicate answers.")
+        return value
+
+    def validate(self, data):
+        missing = [key for key in data['votes'].keys() if key not in data['answers']]
+        if missing:
+            raise serializers.ValidationError(f"Missing votes for answers: {missing}")
+        return data
+
+
+class NewQuestionSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['new_question'])
+    question = PollQuestionSerializer()
+
+
+class DeleteQuestionSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['delete_question'])
+    question_id = serializers.CharField(max_length=100)
+
+    def validate_question_id(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Question ID cannot be empty.")
+        return value
+
+
+class UnpublishQuestionSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['unpublish_question'])

@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Run, WipeCounter, Timer, Game
 from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer, \
-    CreatePollSessionSerializer, PollQuestionSerializer
+    CreatePollSessionSerializer, PollQuestionSerializer, ErrorResponseSerializer, SuccessResponseSerializer
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -147,7 +147,6 @@ class CreatePollSessionAPIView(generics.ListCreateAPIView):
 
 
     def create(self, request, *args, **kwargs):
-        print('user', request.user)
         session_id = str(uuid.uuid4().hex[:6])
         moderator_token = f'{session_id}-mod-{uuid.uuid4().hex[:6]}'
         viewer_token = f'{session_id}-viewer'
@@ -163,14 +162,16 @@ class CreatePollSessionAPIView(generics.ListCreateAPIView):
         r.set(f'poll:token_map:{viewer_token}', session_id, ex=86400)
         r.set(f'poll:token_map:{overlay_token}', session_id, ex=86400)
 
-        return Response(
-            {
+        response_data = {
                 'moderator_url': f'/polls/m/{moderator_token}',
                 'viewer_url': f'/polls/v/{viewer_token}',
                 'overlay_url': f'/polls/o/{overlay_token}',
                 'session_id': session_id,
-            }, status=status.HTTP_201_CREATED
-        )
+            }
+
+        serializer = self.get_serializer(response_data)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class PollQuestionsListView(generics.ListCreateAPIView):
@@ -200,31 +201,33 @@ class PollQuestionsListView(generics.ListCreateAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        return Response(queryset)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         session_id = self.get_session_id()
         client_token = self.kwargs.get('client_token')
 
         if not session_id:
-            error_data = {'error': 'Invalid token'}
-            return Response(error_data, status=status.HTTP_404_NOT_FOUND)
+            serializer = ErrorResponseSerializer({'error': 'Invalid token'})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
         if not client_token or '-mod' not in client_token:
-            error_data = {'error': 'Only moderator can submit questions.'}
-            return Response(error_data, status=status.HTTP_403_FORBIDDEN)
+            serializer = ErrorResponseSerializer({'error': 'Only moderator can submit questions.'})
+            return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        question_data = serializer.validated_data
+        validated_data = serializer.validated_data
         question_id = f'q-{uuid.uuid4().hex[:6]}'
+        votes = {answer: 0 for answer in validated_data['answers']}
 
         question_record = {
             'id': question_id,
-            'question': question_data['question'],
-            'answers': question_data['answers'],
-            'votes': {answer: 0 for answer in question_data['answers']}
+            'question': validated_data['question'],
+            'answers': validated_data['answers'],
+            'votes': votes
         }
 
         r.set(f'poll:question:{question_id}', json.dumps(question_record), ex=86400)
@@ -232,6 +235,7 @@ class PollQuestionsListView(generics.ListCreateAPIView):
 
         out_serializer = self.get_serializer(question_record)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class DeletePollQuestionView(generics.DestroyAPIView):
     serializer_class = PollQuestionSerializer
@@ -243,13 +247,14 @@ class DeletePollQuestionView(generics.DestroyAPIView):
         session_id = r.get(f'poll:token_map:{moderator_token}')
 
         if not session_id:
-            return Response(
-                {'error': 'Invalid moderator token'}, status=status.HTTP_404_NOT_FOUND
-            )
+            serializer = ErrorResponseSerializer({'error': 'Invalid token'})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
         r.lrem(f'poll:session:{session_id}:questions', 0, question_id)
         r.delete(f'poll:question:{question_id}')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+        serializer = SuccessResponseSerializer({'detail': 'Question deleted'})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async() => {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
             const responseData = await response.json();
             if(!response.ok) {
                 const errorText = Object.values(responseData).flat().join(', ');
