@@ -8,10 +8,10 @@ class RunSerializer(serializers.ModelSerializer):
     Handles the serialization and deserialization of Run instances.
     """
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
-    game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all())
+    game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all(), required=True)
     game_name = serializers.ReadOnlyField(source='game.name', read_only=True)
-    mode = serializers.ChoiceField(choices=MODE_CHOICES)
-    is_finished = serializers.BooleanField()
+    mode = serializers.ChoiceField(choices=MODE_CHOICES, required=True)
+    is_finished = serializers.BooleanField(default=False)
 
     class Meta:
         model = Run
@@ -40,7 +40,7 @@ class WipeCounterSerializer(serializers.ModelSerializer):
     Used to serialize and deserialize death counter data per game segment.
     """
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    segment_name = serializers.CharField(max_length=50)
+    segment_name = serializers.CharField(max_length=50, required=True)
     count = serializers.IntegerField(min_value=0, default=0)
     is_finished = serializers.BooleanField(default=False)
 
@@ -66,7 +66,7 @@ class TimerSerializer(serializers.ModelSerializer):
     Used to handle the elapsed time tracking of game segments.
     """
     run = serializers.SlugRelatedField(slug_field='name', read_only=True)
-    segment_name = serializers.CharField(max_length=50)
+    segment_name = serializers.CharField(max_length=50, required=True)
     elapsed_time = serializers.FloatField(required=False, allow_null=True, min_value=0.0)
     is_finished = serializers.BooleanField(default=False)
 
@@ -92,7 +92,8 @@ class GameSerializer(serializers.ModelSerializer):
     Serializer for the Game model.
     Used to handle the creation and retrieval of game instances.
     """
-    name = serializers.CharField(max_length=50)
+    name = serializers.CharField(max_length=50, required=True)
+
     class Meta:
         model = Game
         fields = ['id', 'name']
@@ -177,6 +178,10 @@ class SuccessResponseSerializer(serializers.Serializer):
 
 
 class PublishedQuestionSerializer(serializers.Serializer):
+    """
+    Serializer for publishing a poll question to all connected clients.
+    Used in WebSocket communication between moderator and viewers/overlay.
+    """
     type = serializers.ChoiceField(choices=['publish_question'])
     question_id = serializers.CharField(max_length=100)
     question_data = PollQuestionSerializer()
@@ -188,11 +193,19 @@ class PublishedQuestionSerializer(serializers.Serializer):
 
 
 class WebSocketErrorSerializer(serializers.Serializer):
+    """
+    Serializer for publishing a poll question to all connected clients.
+    Used in WebSocket communication between moderator and viewers/overlay.
+    """
     type = serializers.ChoiceField(choices=['error'])
     error = serializers.CharField()
 
 
 class VoteUpdateSerializer(serializers.Serializer):
+    """
+    Serializer for sending live vote updates to connected WebSocket clients.
+    Includes question ID, answer options and current vote counts.
+    """
     type = serializers.ChoiceField(choices=['vote'])
     question_id = serializers.CharField(max_length=100)
     answers = serializers.ListField(child=serializers.CharField(max_length=100))
@@ -218,11 +231,19 @@ class VoteUpdateSerializer(serializers.Serializer):
 
 
 class NewQuestionSerializer(serializers.Serializer):
+    """
+    Serializer for sending a newly created question to all WebSocket clients.
+    Used when syncing question list or broadcasting a new question.
+    """
     type = serializers.ChoiceField(choices=['new_question'])
     question = PollQuestionSerializer()
 
 
 class DeleteQuestionSerializer(serializers.Serializer):
+    """
+    Serializer for instructing WebSocket clients to delete a specific question.
+    Typically triggered by a moderator.
+    """
     type = serializers.ChoiceField(choices=['delete_question'])
     question_id = serializers.CharField(max_length=100)
 
@@ -233,4 +254,8 @@ class DeleteQuestionSerializer(serializers.Serializer):
 
 
 class UnpublishQuestionSerializer(serializers.Serializer):
+    """
+    Serializer for unpublishing a currently visible question.
+    Informs all WebSocket clients to hide the current question from view.
+    """
     type = serializers.ChoiceField(choices=['unpublish_question'])

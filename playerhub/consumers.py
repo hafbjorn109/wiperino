@@ -1,6 +1,5 @@
 import json
 import redis
-from rest_framework import serializers
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
 from playerhub.serializers import PollVoteSerializer, PublishedQuestionSerializer, WebSocketErrorSerializer, \
