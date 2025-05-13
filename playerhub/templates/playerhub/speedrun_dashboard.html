@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<table class="timer-table">
+  <thead>
+    <tr>
+      <th>Segment Name</th>
+      <th class="hide-mobile">Status</th>
+      <th>Time (s)</th>
+      <th>Controller</th>
+    </tr>
+  </thead>
+  <tbody class="timer-summary-row">
+    <tr>
+      <td>Overall</td>
+      <td id="overall-status" class="hide-mobile">In Progress</td>
+      <td id="overall-time">0.0</td>
+      <td></td>
+    </tr>
+  </tbody>
+  <tbody class="timer-table-body"></tbody>
+</table>
+
+<div class="form-section">
+  <label for="new-segment">Add Segment</label>
+  <input type="text" id="new-segment" placeholder="Segment Name">
+  <button type="button" class="btn" id="add-segment-btn">Add</button>
+</div>
+
+<div class="form-section controls">
+  <button id="url-obs-btn" type="button" class="btn">URL for OBS</button>
+  <input type="text" id="obs-url" class="hidden" placeholder="OBS URL" readonly>
+  <button id="finish-run-btn" type="button" class="btn">Finish Run</button>
+</div>
+{% endblock %}
+
+

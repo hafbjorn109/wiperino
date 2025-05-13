@@ -8,6 +8,8 @@
 
   {% if run.mode == "WIPECOUNTER" %}
     {% include "playerhub/wipecounter_dashboard.html" %}
+  {% elif run.mode == "SPEEDRUN" %}
+    {% include "playerhub/speedrun_dashboard.html" %}
   {% endif %}
 
   <div class="section">
@@ -19,6 +21,8 @@
 {% block scripts %}
 {% if run.mode == "WIPECOUNTER" %}
 <script src="{% static 'js/playerhub/run_wipecounter.js' %}"></script>
+{% elif run.mode == "SPEEDRUN" %}
+<script src="{% static 'js/playerhub/run_speedrun.js' %}"></script>
 {% endif %}
 <script src="{% static 'js/playerhub/run_dashboard.js' %}"></script>
 <script src="{% static 'js/auth.js' %}"></script>
