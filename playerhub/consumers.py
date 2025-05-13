@@ -3,7 +3,8 @@ import redis
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
 from playerhub.serializers import PollVoteSerializer, PublishedQuestionSerializer, WebSocketErrorSerializer, \
-    VoteUpdateSerializer, NewQuestionSerializer, DeleteQuestionSerializer, UnpublishQuestionSerializer
+    VoteUpdateSerializer, NewQuestionSerializer, DeleteQuestionSerializer, UnpublishQuestionSerializer, \
+    WipeUpdateSerializer, NewSegmentSerializer, SegmentFinishedSerializer, RunFinishedSerializer
 from asgiref.sync import sync_to_async
 
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -44,40 +45,81 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
 
         if data.get('type') == 'wipe_update':
+            serializer = WipeUpdateSerializer(data=data)
+            if not serializer.is_valid():
+                error_serializer = WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
+            validated_data = serializer.validated_data
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'wipe_update',
-                    'segment_id': data['segment_id'],
-                    'count': data['count'],
+                    'segment_id': validated_data['segment_id'],
+                    'count': validated_data['count'],
                     'user': self.scope['user'].username
                 }
             )
 
         if data.get('type') == 'new_segment':
+            serializer = NewSegmentSerializer(data=data)
+            if not serializer.is_valid():
+                error_serializer = WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
+            validated_data = serializer.validated_data
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'new_segment',
-                    'segment_id': data['segment_id'],
-                    'segment_name': data['segment_name'],
-                    'count': data['count'],
-                    'is_finished': data['is_finished'],
+                    'segment_id': validated_data['segment_id'],
+                    'segment_name': validated_data['segment_name'],
+                    'count': validated_data['count'],
+                    'is_finished': validated_data['is_finished'],
                     'user': self.scope['user'].username
                 }
             )
 
         if data.get('type') == 'segment_finished':
+            serializer = SegmentFinishedSerializer(data=data)
+            if not serializer.is_valid():
+                error_serializer = WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
+            validated_data = serializer.validated_data
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'segment_finished',
-                    'segment_id': data['segment_id'],
+                    'segment_id': validated_data['segment_id'],
                     'user': self.scope['user'].username
                 }
             )
 
         if data.get('type') == 'run_finished':
+            serializer = RunFinishedSerializer(data=data)
+            if not serializer.is_valid():
+                error_serializer = WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {

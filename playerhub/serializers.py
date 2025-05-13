@@ -259,3 +259,28 @@ class UnpublishQuestionSerializer(serializers.Serializer):
     Informs all WebSocket clients to hide the current question from view.
     """
     type = serializers.ChoiceField(choices=['unpublish_question'])
+
+
+class WipeUpdateSerializer(serializers.Serializer):
+    segment_id = serializers.IntegerField(min_value=1)
+    count = serializers.IntegerField(min_value=0)
+
+
+class NewSegmentSerializer(serializers.Serializer):
+    segment_id = serializers.IntegerField(min_value=1)
+    segment_name = serializers.CharField(max_length=50)
+    count = serializers.IntegerField(min_value=0)
+    is_finished = serializers.BooleanField(default=False)
+
+    def validate_segment_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Segment name cannot be empty.")
+        return value
+
+
+class SegmentFinishedSerializer(serializers.Serializer):
+    segment_id = serializers.IntegerField(min_value=1)
+
+
+class RunFinishedSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['run_finished'])
