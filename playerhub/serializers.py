@@ -128,7 +128,7 @@ class PollQuestionSerializer(serializers.Serializer):
         min_length=2,
     )
     votes = serializers.DictField(
-        child=serializers.IntegerField(), required=False, read_only=True
+        child=serializers.IntegerField(), required=False, read_only=False
     )
 
     def validate_question(self, value):

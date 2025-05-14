@@ -272,8 +272,11 @@ class PollConsumer(AsyncWebsocketConsumer):
             question_id = data['question_id']
             redis_key = f'poll:question:{question_id}'
 
-            question_data = await sync_to_async(r.get)(redis_key)
-            question_data = json.loads(question_data)
+            question_data_raw = await sync_to_async(r.get)(redis_key)
+            question_data = json.loads(question_data_raw)
+
+            if 'votes' not in question_data:
+                question_data['votes'] = {answer: 0 for answer in question_data['answers']}
 
             if not question_data:
                 serializer = WebSocketErrorSerializer({
@@ -297,15 +300,28 @@ class PollConsumer(AsyncWebsocketConsumer):
             session_data['published_question_id'] = question_id
             await sync_to_async(r.set)(session_key, json.dumps(session_data), ex=86400)
 
+            message_payload = {
+                'type': 'publish_question',
+                'question_id': question_id,
+                'question_data': question_data
+            }
+
+            serializer = PublishedQuestionSerializer(data=message_payload)
+
+            if not serializer.is_valid():
+                error_serializer = WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
+            print('[DEBUG] serializer.data:', serializer.data)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'publish_question',
-                    'message': {
-                        'type': 'publish_question',
-                        'question_id': question_id,
-                        'question_data': question_data
-                    }
+                    'message': serializer.data
                 }
             )
 
