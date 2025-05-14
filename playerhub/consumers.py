@@ -2,9 +2,7 @@ import json
 import redis
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
-from playerhub.serializers import PollVoteSerializer, PublishedQuestionSerializer, WebSocketErrorSerializer, \
-    VoteUpdateSerializer, NewQuestionSerializer, DeleteQuestionSerializer, UnpublishQuestionSerializer, \
-    WipeUpdateSerializer, NewSegmentSerializer, SegmentFinishedSerializer, RunFinishedSerializer
+import playerhub.serializers as ph_serializers
 from asgiref.sync import sync_to_async
 
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
@@ -43,126 +41,67 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         """
         print("WS RECEIVE:", text_data)
         data = json.loads(text_data)
+        message_type = data.get('type')
 
-        if data.get('type') == 'wipe_update':
-            serializer = WipeUpdateSerializer(data=data)
-            if not serializer.is_valid():
-                error_serializer = WebSocketErrorSerializer({
-                    'type': 'error',
-                    'error': serializer.errors
-                })
-                await self.send(text_data=json.dumps(error_serializer.data))
-                return
+        serializer_map = {
+            'wipe_update': ph_serializers.WipeUpdateSerializer,
+            'new_segment': ph_serializers.NewSegmentSerializer,
+            'segment_finished': ph_serializers.SegmentFinishedSerializer,
+            'run_finished': ph_serializers.RunFinishedSerializer
+        }
 
-            validated_data = serializer.validated_data
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'wipe_update',
-                    'segment_id': validated_data['segment_id'],
-                    'count': validated_data['count'],
-                    'user': self.scope['user'].username
-                }
-            )
+        serializer_class = serializer_map.get(message_type)
+        if not serializer_class:
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'error': 'Invalid message type'
+            })
+            await self.send(text_data=json.dumps(error_serializer.data))
+            return
 
-        if data.get('type') == 'new_segment':
-            serializer = NewSegmentSerializer(data=data)
-            if not serializer.is_valid():
-                error_serializer = WebSocketErrorSerializer({
-                    'type': 'error',
-                    'error': serializer.errors
-                })
-                await self.send(text_data=json.dumps(error_serializer.data))
-                return
+        serializer = serializer_class(data=data)
+        if not serializer.is_valid():
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'error': serializer.errors
+            })
+            await self.send(text_data=json.dumps(error_serializer.data))
+            return
 
-            validated_data = serializer.validated_data
+        validated_data = serializer.validated_data
+        payload = {'type': message_type, **validated_data, 'user': self.scope['user'].username}
 
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'new_segment',
-                    'segment_id': validated_data['segment_id'],
-                    'segment_name': validated_data['segment_name'],
-                    'count': validated_data['count'],
-                    'is_finished': validated_data['is_finished'],
-                    'user': self.scope['user'].username
-                }
-            )
+        broadcast_serializer_map = {
+            'wipe_update': ph_serializers.WipeUpdateBroadcastSerializer,
+            'new_segment': ph_serializers.NewSegmentBroadcastSerializer,
+            'segment_finished': ph_serializers.SegmentFinishedBroadcastSerializer,
+            'run_finished': ph_serializers.RunFinishedBroadcastSerializer
+        }
 
-        if data.get('type') == 'segment_finished':
-            serializer = SegmentFinishedSerializer(data=data)
-            if not serializer.is_valid():
-                error_serializer = WebSocketErrorSerializer({
-                    'type': 'error',
-                    'error': serializer.errors
-                })
-                await self.send(text_data=json.dumps(error_serializer.data))
-                return
+        out_serializer_class = broadcast_serializer_map.get(message_type)
+        out_serializer = out_serializer_class(instance=payload)
 
-            validated_data = serializer.validated_data
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'segment_finished',
-                    'segment_id': validated_data['segment_id'],
-                    'user': self.scope['user'].username
-                }
-            )
-
-        if data.get('type') == 'run_finished':
-            serializer = RunFinishedSerializer(data=data)
-            if not serializer.is_valid():
-                error_serializer = WebSocketErrorSerializer({
-                    'type': 'error',
-                    'error': serializer.errors
-                })
-                await self.send(text_data=json.dumps(error_serializer.data))
-                return
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'run_finished',
-                    'user': self.scope['user'].username
-                }
-            )
+        await self.channel_layer.group_send(self.room_group_name, out_serializer.data)
 
     async def wipe_update(self, event):
         """Broadcasts a wipe counter update to all group members."""
-        print("broadcasting to client:", event)
-        await self.send(text_data=json.dumps({
-            'type': 'wipe_update',
-            'segment_id': event['segment_id'],
-            'count': event['count'],
-            'user': event['user']
-        }))
+        serializer = ph_serializers.WipeUpdateBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
     async def new_segment(self, event):
         """Broadcasts a new segment to all group members."""
-        await self.send(text_data=json.dumps({
-            'type': 'new_segment',
-            'segment_id': event['segment_id'],
-            'segment_name': event['segment_name'],
-            'count': event['count'],
-            'is_finished': event['is_finished'],
-            'user': event['user']
-        }))
+        serializer = ph_serializers.NewSegmentBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
     async def segment_finished(self, event):
         """Broadcasts that a segment has been marked as finished."""
-        await self.send(text_data=json.dumps({
-            'type': 'segment_finished',
-            'segment_id': event['segment_id'],
-            'user': event['user']
-        }))
+        serializer = ph_serializers.SegmentFinishedBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
     async def run_finished(self, event):
         """Broadcasts that the entire run has been finished."""
-        await self.send(text_data=json.dumps({
-            'type': 'run_finished',
-            'user': event['user']
-        }))
+        serializer = ph_serializers.RunFinishedBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
 
 class OverlayConsumer(AsyncWebsocketConsumer):
@@ -192,34 +131,23 @@ class OverlayConsumer(AsyncWebsocketConsumer):
     async def wipe_update(self, event):
         """Sends wipe count updates to the overlay client."""
         print("Overlay WS received wipe_update:", event)
-        await self.send(text_data=json.dumps({
-            'type': 'wipe_update',
-            'segment_id': event['segment_id'],
-            'count': event['count']
-        }))
+        serializer = ph_serializers.WipeUpdateBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
     async def new_segment(self, event):
         """Sends new segment data to the overlay client."""
-        await self.send(text_data=json.dumps({
-            'type': 'new_segment',
-            'segment_id': event['segment_id'],
-            'segment_name': event['segment_name'],
-            'count': event['count'],
-            'is_finished': event['is_finished']
-        }))
+        serializer = ph_serializers.NewSegmentBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
     async def segment_finished(self, event):
         """Sends notification that a segment is finished."""
-        await self.send(text_data=json.dumps({
-            'type': 'segment_finished',
-            'segment_id': event['segment_id']
-        }))
+        serializer = ph_serializers.SegmentFinishedBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
     async def run_finished(self, event):
         """Sends notification that the run has ended."""
-        await self.send(text_data=json.dumps({
-            'type': 'run_finished'
-        }))
+        serializer = ph_serializers.RunFinishedBroadcastSerializer(instance=event)
+        await self.send(text_data=json.dumps(serializer.data))
 
 
 class PollConsumer(AsyncWebsocketConsumer):
@@ -258,10 +186,11 @@ class PollConsumer(AsyncWebsocketConsumer):
         Supports publishing a question and unpublishing a question to OBS overlay and votes view.
         """
         data = json.loads(text_data)
+        message_type = data.get('type')
         print('[WS] Received data: ', data)
 
-        if data.get('type') in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
-            serializer = WebSocketErrorSerializer({
+        if message_type in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
+            serializer = ph_serializers.WebSocketErrorSerializer({
                 'type': 'error',
                 'error': 'Only moderators can perform this action'
             })
@@ -273,13 +202,21 @@ class PollConsumer(AsyncWebsocketConsumer):
             redis_key = f'poll:question:{question_id}'
 
             question_data_raw = await sync_to_async(r.get)(redis_key)
+            if not question_data_raw:
+                serializer = ph_serializers.WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': 'Question not found'
+                })
+                await self.send(text_data=json.dumps(serializer.data))
+                return
+
             question_data = json.loads(question_data_raw)
 
             if 'votes' not in question_data:
                 question_data['votes'] = {answer: 0 for answer in question_data['answers']}
 
             if not question_data:
-                serializer = WebSocketErrorSerializer({
+                serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Question not found'
                 })
@@ -289,7 +226,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             session_key = f'poll:session:{self.session_id}'
             session_data_raw = await sync_to_async(r.get)(session_key)
             if not session_data_raw:
-                serializer = WebSocketErrorSerializer({
+                serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Session not found'
                 })
@@ -306,10 +243,10 @@ class PollConsumer(AsyncWebsocketConsumer):
                 'question_data': question_data
             }
 
-            serializer = PublishedQuestionSerializer(data=message_payload)
+            serializer = ph_serializers.PublishedQuestionSerializer(data=message_payload)
 
             if not serializer.is_valid():
-                error_serializer = WebSocketErrorSerializer({
+                error_serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': serializer.errors
                 })
@@ -329,7 +266,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             session_key = f'poll:session:{self.session_id}'
             session_data_raw = await sync_to_async(r.get)(session_key)
             if not session_data_raw:
-                serializer = WebSocketErrorSerializer({
+                serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Session not found'
                 })
@@ -349,9 +286,9 @@ class PollConsumer(AsyncWebsocketConsumer):
 
         elif data.get('type') == 'vote':
             print('[WS] Trying to validate vote:', data)
-            serializer = PollVoteSerializer(data=data)
+            serializer = ph_serializers.PollVoteSerializer(data=data)
             if not serializer.is_valid():
-                error_serializer = WebSocketErrorSerializer({
+                error_serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': serializer.errors
                 })
@@ -366,7 +303,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             question_data_raw = await sync_to_async(r.get)(f'poll:question:{question_id}')
 
             if not question_data_raw:
-                serializer = WebSocketErrorSerializer({
+                serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Question not found'
                 })
@@ -376,7 +313,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             question = json.loads(question_data_raw)
 
             if answer not in question.get('answers', []):
-                serializer = WebSocketErrorSerializer({
+                serializer = ph_serializers.WebSocketErrorSerializer({
                     'type': 'error',
                     'error': 'Answer not found'
                 })
@@ -398,11 +335,20 @@ class PollConsumer(AsyncWebsocketConsumer):
                 'votes': question['votes']
             }
 
+            out_serializer = ph_serializers.VoteUpdateSerializer(data=vote_data)
+            if not out_serializer.is_valid():
+                error_serializer = ph_serializers.WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': out_serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'vote_update',
-                    'message': vote_data
+                    'message': out_serializer.data
                 }
             )
 
@@ -411,56 +357,74 @@ class PollConsumer(AsyncWebsocketConsumer):
             for qid in questions_ids:
                 q_raw = r.get(f'poll:question:{qid}')
                 print('[WS] sending new_question:', json.loads(q_raw))
-                if q_raw:
-                    await self.channel_layer.group_send(
-                        self.room_group_name,
-                        {
+                if not q_raw:
+                    error_serializer = ph_serializers.WebSocketErrorSerializer({
+                        'type': 'error',
+                        'error': 'Question not found'
+                    })
+                    await self.send(text_data=json.dumps(error_serializer.data))
+                    return
+
+                question = json.loads(q_raw)
+
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'new_question',
+                        'message': {
                             'type': 'new_question',
-                            'message': {
-                                'type': 'new_question',
-                                'question': json.loads(q_raw)
-                            }
+                            'question': question
                         }
-                    )
+                    }
+                )
 
         elif data.get('type') == 'delete_question' and '-mod' in self.client_token:
+            serializer = ph_serializers.DeleteQuestionSerializer(data= {
+                'type': 'delete_question',
+                'question_id': data.get('question_id')
+            })
+            if not serializer.is_valid():
+                error_serializer = ph_serializers.WebSocketErrorSerializer({
+                    'type': 'error',
+                    'error': serializer.errors
+                })
+                await self.send(text_data=json.dumps(error_serializer.data))
+                return
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'delete_question',
-                    'message': {
-                        'type': 'delete_question',
-                        'question_id': data['question_id']
-                    }
+                    'message': serializer.data
                 }
             )
 
 
     async def publish_question(self, event):
         """Broadcasts a publishing trigger for a question to all group members."""
-        serializer = PublishedQuestionSerializer(event['message'])
+        serializer = ph_serializers.PublishedQuestionSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
 
 
     async def unpublish_question(self, event):
         """Broadcasts an unpublishing trigger for a question to all group members."""
-        serializer = UnpublishQuestionSerializer({'type': 'unpublish_question'})
+        serializer = ph_serializers.UnpublishQuestionSerializer({'type': 'unpublish_question'})
         await self.send(text_data=json.dumps(serializer.data))
 
 
     async def vote_update(self, event):
         """Broadcasts a vote update for a question to all group members."""
-        serializer = VoteUpdateSerializer(event['message'])
+        serializer = ph_serializers.VoteUpdateSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
 
 
     async def new_question(self, event):
         """Broadcasts a new question to all group members."""
-        serializer = NewQuestionSerializer(event['message'])
+        serializer = ph_serializers.NewQuestionSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
 
 
     async def delete_question(self, event):
         """Broadcasts a delete question to all group members."""
-        serializer = DeleteQuestionSerializer(event['message'])
+        serializer = ph_serializers.DeleteQuestionSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))

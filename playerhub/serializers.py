@@ -284,3 +284,35 @@ class SegmentFinishedSerializer(serializers.Serializer):
 
 class RunFinishedSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=['run_finished'])
+
+
+class WipeUpdateBroadcastSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['wipe_update'])
+    segment_id = serializers.IntegerField(min_value=1)
+    count = serializers.IntegerField(min_value=0)
+    user = serializers.CharField()
+
+
+class NewSegmentBroadcastSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['new_segment'])
+    segment_id = serializers.IntegerField(min_value=1)
+    segment_name = serializers.CharField(max_length=50)
+    count = serializers.IntegerField(min_value=0)
+    is_finished = serializers.BooleanField(default=False)
+    user = serializers.CharField()
+
+    def validate_segment_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Segment name cannot be empty.")
+        return value
+
+
+class SegmentFinishedBroadcastSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['segment_finished'])
+    segment_id = serializers.IntegerField(min_value=1)
+    user = serializers.CharField()
+
+
+class RunFinishedBroadcastSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['run_finished'])
+    user = serializers.CharField()
