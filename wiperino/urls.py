@@ -22,10 +22,12 @@ urlpatterns = [
     path('api/games/', playerhub_views.GameListView.as_view(), name='api-games'),
     path('api/games/<int:game_id>/',
          playerhub_views.GameView.as_view(), name='api-game'),
-    path("public-api/runs/<int:pk>/",
+    path('public-api/runs/<int:pk>/',
          playerhub_views.PublicRunView.as_view(), name="public-run-detail"),
-    path("public-api/runs/<int:run_id>/wipecounters/",
+    path('public-api/runs/<int:run_id>/wipecounters/',
          playerhub_views.PublicWipecounterListView.as_view(), name="public-wipecounters-list"),
+    path('public-api/runs/<int:run_id>/timers/',
+         playerhub_views.PublicTimerListView.as_view(), name="public-timers-list"),
 
     # API endpoints - polls
     path('api/polls/create_session/',

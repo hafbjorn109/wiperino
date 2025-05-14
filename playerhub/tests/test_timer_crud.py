@@ -209,3 +209,21 @@ def test_delete_foreign_user_timer(client):
     timer = TimerFactory(run=run)
     response = client.delete(f'/api/runs/{run.id}/timers/{timer.id}/')
     assert response.status_code == 404, 'User should not be able to delete foreign user timer'
+
+
+@pytest.mark.django_db
+def test_public_get_timers(client):
+    """
+    Ensure that anyone (unauthenticated) can retrieve public timers for a run.
+    """
+    user = UserFactory()
+    game = GameFactory()
+    run = RunFactory(game=game, user=user)
+    TimerFactory.create_batch(5, run=run)
+
+    response = client.get(f'/public-api/runs/{run.id}/timers/', {}, format='json')
+    assert response.status_code == 200
+    assert len(response.data) == 5
+    assert all('segment_name' in timer for timer in response.data)
+    assert all('elapsed_time' in timer for timer in response.data)
+    assert all('is_finished' in timer for timer in response.data)

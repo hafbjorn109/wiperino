@@ -103,6 +103,17 @@ class TimerListView(generics.ListCreateAPIView):
         serializer.save(run=run)
 
 
+class PublicTimerListView(generics.ListAPIView):
+    """
+    API view to retrieve list of timers for public use, i.e., overlays for OBS.
+    """
+    serializer_class = TimerSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Timer.objects.filter(run__id = self.kwargs['run_id']).order_by('id')
+
+
 class TimerView(generics.RetrieveUpdateDestroyAPIView):
     """
     API view to retrieve, update, or delete a specific timer.
