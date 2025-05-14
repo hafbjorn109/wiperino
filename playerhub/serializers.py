@@ -316,3 +316,30 @@ class SegmentFinishedBroadcastSerializer(serializers.Serializer):
 class RunFinishedBroadcastSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=['run_finished'])
     user = serializers.CharField()
+
+
+class TimerBaseSerializer(serializers.Serializer):
+    segment_id = serializers.IntegerField(min_value=1)
+    elapsed_time = serializers.FloatField(min_value=0.0)
+
+
+class TimerStartSerializer(TimerBaseSerializer):
+    type = serializers.ChoiceField(choices=['start_timer'])
+    started_at = serializers.DateTimeField()
+
+
+class TimerPauseSerializer(TimerBaseSerializer):
+    type = serializers.ChoiceField(choices=['pause_timer'])
+
+
+class TimerFinishSerializer(TimerBaseSerializer):
+    type = serializers.ChoiceField(choices=['finish_timer'])
+
+
+class TimerBroadcastSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['start_timer', 'timer_update', 'finish_timer'])
+    segment_id = serializers.IntegerField(min_value=1)
+    elapsed_time = serializers.FloatField(min_value=0.0)
+    user = serializers.CharField()
+    started_at = serializers.DateTimeField(required=False, allow_null=True)
+    is_finished = serializers.BooleanField(default=False)

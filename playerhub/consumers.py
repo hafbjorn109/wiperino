@@ -428,3 +428,76 @@ class PollConsumer(AsyncWebsocketConsumer):
         """Broadcasts a delete question to all group members."""
         serializer = ph_serializers.DeleteQuestionSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
+
+
+class TimerConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        """Joins a group based on timer ID for receiving real-time updates."""
+        self.run_id = self.scope['url_route']['kwargs']['run_id']
+        self.room_group_name = f'timer_{self.run_id}'
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+
+    async def receive(self, text_data=None, bytes_data=None):
+        data = json.loads(text_data)
+        message_type = data.get('type')
+
+        input_serializer_map = {
+            'start_timer': ph_serializers.TimerStartSerializer,
+            'pause_timer': ph_serializers.TimerPauseSerializer,
+            'finish_timer': ph_serializers.TimerFinishSerializer
+        }
+
+        serializer_class = input_serializer_map.get(message_type)
+        if not serializer_class:
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'error': 'Invalid message type'
+            })
+            await self.send(text_data=json.dumps(error_serializer.data))
+            return
+
+        serializer = serializer_class(data=data)
+        if not serializer.is_valid():
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'error': serializer.errors
+            })
+            await self.send(text_data=json.dumps(error_serializer.data))
+            return
+
+        validated_data = serializer.validated_data
+        payload = {
+            'type': message_type,
+            **validated_data,
+            'user': self.scope['user'].username
+        }
+
+        broadcast = ph_serializers.TimerBroadcastSerializer(instance=payload)
+
+        await self.channel_layer.group_send(self.room_group_name, broadcast.data)
+
+
+    async def start_timer(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+
+    async def pause_timer(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+
+    async def finish_timer(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
