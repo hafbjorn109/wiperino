@@ -262,11 +262,19 @@ class UnpublishQuestionSerializer(serializers.Serializer):
 
 
 class WipeUpdateSerializer(serializers.Serializer):
+    """
+    Input serializer for updating the wipe count of a segment.
+    Used when the user increments or decrements the counter.
+    """
     segment_id = serializers.IntegerField(min_value=1)
     count = serializers.IntegerField(min_value=0)
 
 
 class NewSegmentSerializer(serializers.Serializer):
+    """
+    Input serializer for creating a new segment in a run.
+    Includes initial count and finished status.
+    """
     segment_id = serializers.IntegerField(min_value=1)
     segment_name = serializers.CharField(max_length=50)
     count = serializers.IntegerField(min_value=0)
@@ -279,14 +287,24 @@ class NewSegmentSerializer(serializers.Serializer):
 
 
 class SegmentFinishedSerializer(serializers.Serializer):
+    """
+    Input serializer for marking a segment as finished.
+    """
     segment_id = serializers.IntegerField(min_value=1)
 
 
 class RunFinishedSerializer(serializers.Serializer):
+    """
+    Input serializer for marking the entire run as finished.
+    """
     type = serializers.ChoiceField(choices=['run_finished'])
 
 
 class WipeUpdateBroadcastSerializer(serializers.Serializer):
+    """
+    Output serializer for broadcasting a wipe counter update
+    to all connected clients in a run group.
+    """
     type = serializers.ChoiceField(choices=['wipe_update'])
     segment_id = serializers.IntegerField(min_value=1)
     count = serializers.IntegerField(min_value=0)
@@ -294,6 +312,10 @@ class WipeUpdateBroadcastSerializer(serializers.Serializer):
 
 
 class NewSegmentBroadcastSerializer(serializers.Serializer):
+    """
+    Output serializer for broadcasting a newly created segment
+    to all connected clients in a run group.
+    """
     type = serializers.ChoiceField(choices=['new_segment'])
     segment_id = serializers.IntegerField(min_value=1)
     segment_name = serializers.CharField(max_length=50)
@@ -308,35 +330,61 @@ class NewSegmentBroadcastSerializer(serializers.Serializer):
 
 
 class SegmentFinishedBroadcastSerializer(serializers.Serializer):
+    """
+    Output serializer for broadcasting the information
+    that a segment has been marked as finished.
+    """
     type = serializers.ChoiceField(choices=['segment_finished'])
     segment_id = serializers.IntegerField(min_value=1)
     user = serializers.CharField()
 
 
 class RunFinishedBroadcastSerializer(serializers.Serializer):
+    """
+    Output serializer for broadcasting that a run has been completed.
+    """
     type = serializers.ChoiceField(choices=['run_finished'])
     user = serializers.CharField()
 
 
 class TimerBaseSerializer(serializers.Serializer):
+    """
+    Base serializer used for all timer-related WebSocket messages.
+    """
     segment_id = serializers.IntegerField(min_value=1)
     elapsed_time = serializers.FloatField(min_value=0.0)
 
 
 class TimerStartSerializer(TimerBaseSerializer):
+    """
+    Input serializer for starting a timer on a given segment.
+    Requires the current elapsed_time and timestamp.
+    """
     type = serializers.ChoiceField(choices=['start_timer'])
     started_at = serializers.DateTimeField()
 
 
 class TimerPauseSerializer(TimerBaseSerializer):
+    """
+    Input serializer for pausing a timer.
+    Expects the current total elapsed_time.
+    """
     type = serializers.ChoiceField(choices=['pause_timer'])
 
 
 class TimerFinishSerializer(TimerBaseSerializer):
+    """
+    Input serializer for finishing a timer.
+    Sets the segment as finished and passes final elapsed_time.
+    """
     type = serializers.ChoiceField(choices=['finish_timer'])
 
 
 class TimerBroadcastSerializer(serializers.Serializer):
+    """
+    Output serializer for broadcasting any timer-related event,
+    including start, pause (update), and finish.
+    """
     type = serializers.ChoiceField(choices=['start_timer', 'timer_update', 'finish_timer'])
     segment_id = serializers.IntegerField(min_value=1)
     elapsed_time = serializers.FloatField(min_value=0.0)

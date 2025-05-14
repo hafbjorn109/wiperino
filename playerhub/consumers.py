@@ -442,13 +442,20 @@ class TimerConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        """
+        Handles WebSocket disconnection and removes the client from the timer group.
+        """
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
-
     async def receive(self, text_data=None, bytes_data=None):
+        """
+        Receives incoming WebSocket messages, validates them using the appropriate
+        serializer (based on message 'type'), and broadcasts structured payload
+        to all group members using a broadcast serializer.
+        """
         data = json.loads(text_data)
         message_type = data.get('type')
 
@@ -489,15 +496,27 @@ class TimerConsumer(AsyncWebsocketConsumer):
 
 
     async def start_timer(self, event):
+        """
+        Handles broadcasting of 'start_timer' events to the client.
+        Used to synchronize timer start between dashboard and overlay.
+        """
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
 
 
     async def pause_timer(self, event):
+        """
+        Handles broadcasting of 'pause_timer' events to the client.
+        Used to stop the live update of the timer and sync elapsed time.
+        """
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
 
 
     async def finish_timer(self, event):
+        """
+        Handles broadcasting of 'finish_timer' events to the client.
+        Used to mark a timer segment as completed and stop updates.
+        """
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
