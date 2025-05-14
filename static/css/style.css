@@ -357,3 +357,46 @@ body {
   width: 100% !important;
   height: 100% !important;
 }
+
+.timer-table {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  border-collapse: collapse;
+  font-size: 1rem;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timer-table thead {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #ccc;
+}
+
+.timer-table th,
+.timer-table td {
+  padding: 1rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px dotted #ddd;
+}
+
+.timer-summary-row td {
+  font-weight: bold;
+  background-color: #fafafa;
+  border-bottom: 2px solid #999;
+}
+
+.timer-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.timer-table td:nth-child(2) {
+  font-style: italic;
+  color: #555;
+}
+
+.segment-name-cell {
+  text-align: left;
+}
