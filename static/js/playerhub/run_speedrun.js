@@ -49,6 +49,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Renders a single segment row in the table.
+     */
     function renderSegmentRow(data) {
         const row = document.createElement('tr');
 
@@ -82,6 +85,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         tableBody.appendChild(row);
     }
 
+    /**
+     * Fetches all timer segments for the current run and renders them in the table.
+     * Also calculates the overall time.
+     */
     async function fetchAndDisplayTimerSegments() {
         try {
             const response = await fetch(`/api/runs/${runId}/timers/`, {
@@ -115,6 +122,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Handles start, pause, and finish button clicks in the segment row.
+     * Sends corresponding WebSocket messages.
+     */
     function timerController(e) {
         const segmentRow = e.target.closest('tr');
         const segmentId = e.target.dataset.id;
@@ -159,6 +170,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Starts a timer for a given segment.
+     * Sets up setInterval and updates the UI.
+     */
     function handleStartTimer(data) {
         const segmentId = data.segment_id;
         const timeCell = document.getElementById(`time-segment-${segmentId}`)
@@ -179,6 +194,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         }, 100)
     }
 
+    /**
+     * Pauses a timer and sends updated elapsed_time to the backend via PATCH.
+     */
     async function handlePauseTimer(data) {
         const segmentId = data.segment_id;
 
@@ -219,6 +237,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Finishes a timer segment, clears interval, updates backend and UI.
+     */
     async function handleFinishTimer(data) {
         const segmentId = data.segment_id;
 
@@ -267,6 +288,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Finishes the entire run and all its segments.
+     * Updates backend and notifies all clients via WebSocket.
+     */
     async function finishRun() {
         try {
             const response = await fetch(`/api/runs/${runId}/`, {
@@ -299,6 +324,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Closes all segment timers by sending PATCH with is_finished = true.
+     */
     async function closeAllSegments() {
         try {
             const response = await fetch(`/api/runs/${runId}/timers/`, {
@@ -340,6 +368,9 @@ document.addEventListener("DOMContentLoaded", async() => {
 
 
 
+    /**
+     * Recalculates total elapsed time of all visible segments and updates UI.
+     */
     function recalculateOverall() {
         let total = 0.0;
         document.querySelectorAll('.timer-table-body tr td:nth-child(3)').forEach(cell => {
@@ -348,6 +379,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         document.getElementById('overall-time').textContent = total.toFixed(1);
     }
 
+    /**
+     * Shows the OBS overlay URL input field with prefilled value.
+     */
     function showObsUrl() {
         const url = window.location.origin + `/overlay/runs/${runId}/`;
         const obsUrl = document.getElementById('obs-url');
@@ -355,6 +389,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         obsUrl.classList.remove('hidden');
     }
 
+    /**
+     * Adds a new timer segment via POST and broadcasts it via WebSocket.
+     */
     async function addSegment() {
         const segmentNameInput = document.getElementById('new-segment').value;
 
@@ -395,6 +432,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Handles UI updates when the run is marked as finished.
+     * Disables controls and sets all statuses to "Finished".
+     */
     function handleRunFinished() {
         document.querySelectorAll('.form-section').forEach(section => {
             section.classList.add('hidden');
@@ -411,14 +452,30 @@ document.addEventListener("DOMContentLoaded", async() => {
     }
 
 
-
+    /**
+     * Handles click events for segment controls (Start, Pause, Finish).
+     */
     tableBody.addEventListener('click', (e) => timerController(e));
 
+    /**
+     * Handles click on "Add Segment" button to create and broadcast new segment.
+     */
     addSegmentButton.addEventListener('click', () => addSegment());
 
+
+    /**
+     * Handles click on "Finish Run" button to mark run and segments as finished.
+     */
     finishRunButton.addEventListener('click', () => finishRun());
 
+
+    /**
+     * Handles click on "OBS URL" button to show prefilled overlay URL.
+     */
     obsUrlButton.addEventListener('click', () => showObsUrl());
 
+    /**
+     * Fetches and displays existing timer segments when the page loads.
+     */
     await fetchAndDisplayTimerSegments();
 })
