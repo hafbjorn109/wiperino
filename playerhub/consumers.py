@@ -490,6 +490,8 @@ class TimerConsumer(AsyncWebsocketConsumer):
         if message_type == 'run_finished':
             print(f"[TIMER WS] Run {self.run_id} marked as finished by user {self.scope['user'].username}")
 
+        print(validated_data)
+
         payload = {
             'type': message_type,
             **validated_data,
@@ -546,4 +548,45 @@ class TimerConsumer(AsyncWebsocketConsumer):
         Used to synchronize table updates between multiple views.
         """
         serializer = ph_serializers.NewTimerSegmentSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+
+class OverlayTimerConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        """Joins a group based on timer ID for receiving real-time updates."""
+        self.run_id = self.scope['url_route']['kwargs']['run_id']
+        self.room_group_name = f'timer_{self.run_id}'
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        """
+        Handles WebSocket disconnection and removes the client from the timer group.
+        """
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def start_timer(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+    async def pause_timer(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+    async def finish_timer(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+    async def new_segment(self, event):
+        serializer = ph_serializers.NewTimerSegmentSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+    async def run_finished(self, event):
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))

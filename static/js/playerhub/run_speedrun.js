@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 
         switch (data.type) {
             case 'start_timer':
-                console.log(`[Start] Segment ${data.segment_id} started at ${data.started_at}`);
+                console.log(`[Start] Segment ${data.segment_id} started at ${data.started_at}, ${data}`);
                 handleStartTimer(data);
                 break;
 
@@ -65,7 +65,8 @@ document.addEventListener("DOMContentLoaded", async() => {
 
         const timeCell = document.createElement('td');
         timeCell.id = `time-segment-${data.segment_id || data.id}`;
-        timeCell.textContent = (data.elapsed_time || 0).toFixed(1);
+        timeCell.setAttribute('data-time-raw', data.elapsed_time || 0);
+        timeCell.textContent = formatTime(data.elapsed_time || 0);
 
         const controllerCell = document.createElement('td');
         if (!data.is_finished) {
@@ -127,16 +128,17 @@ document.addEventListener("DOMContentLoaded", async() => {
      * Sends corresponding WebSocket messages.
      */
     function timerController(e) {
-        const segmentRow = e.target.closest('tr');
         const segmentId = e.target.dataset.id;
         if (!segmentId) return;
 
         const now = new Date().toISOString();
 
         if (e.target.classList.contains('start-btn')) {
+
             const timeCell = document.getElementById(`time-segment-${segmentId}`)
-            const elapsed = parseFloat(timeCell.textContent || 0.0);
+            const elapsed = parseFloat(timeCell.dataset.timeRaw || 0.0);
             const now = new Date().toISOString();
+            console.log('[WS] Sending start_timer with elapsed:', elapsed);
 
             socket.send(JSON.stringify({
                 type: 'start_timer',
@@ -149,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 
         if (e.target.classList.contains('pause-btn')) {
             const timeCell = document.getElementById(`time-segment-${segmentId}`)
-            const elapsed = parseFloat(timeCell.textContent || 0.0);
+            const elapsed = parseFloat(timeCell.dataset.timeRaw);
             socket.send(JSON.stringify({
                 type: 'pause_timer',
                 segment_id: segmentId,
@@ -184,12 +186,14 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
 
         let startTimestamp = new Date(data.started_at).getTime();
-        let baseElapsed = data.elapsed_time || 0.0;
+        let existingElapsed = parseFloat(timeCell.dataset.timeRaw || "0");
+        let baseElapsed = (typeof data.elapsed_time === 'number') ? data.elapsed_time : existingElapsed;
 
         activeTimers[segmentId] = setInterval(() => {
             const now = Date.now();
             const elapsed = (now - startTimestamp) / 1000 + baseElapsed;
-            timeCell.textContent = elapsed.toFixed(1);
+            timeCell.textContent = formatTime(elapsed);
+            timeCell.dataset.timeRaw = `${elapsed}`;
             recalculateOverall();
         }, 100)
     }
@@ -208,7 +212,7 @@ document.addEventListener("DOMContentLoaded", async() => {
         const timeCell = document.getElementById(`time-segment-${segmentId}`)
         if (!timeCell) return;
 
-        const currentTime = parseFloat(timeCell.textContent);
+        const currentTime = parseFloat(timeCell.dataset.timeRaw || "0");
         if (isNaN(currentTime)) return;
 
         try {
@@ -251,7 +255,7 @@ document.addEventListener("DOMContentLoaded", async() => {
         const timeCell = document.getElementById(`time-segment-${segmentId}`);
         if (!timeCell) return;
 
-        const finalTime = parseFloat(timeCell.textContent);
+        const finalTime = parseFloat(timeCell.dataset.timeRaw || "0");
         if (isNaN(finalTime)) return;
 
         try {
@@ -374,16 +378,17 @@ document.addEventListener("DOMContentLoaded", async() => {
     function recalculateOverall() {
         let total = 0.0;
         document.querySelectorAll('.timer-table-body tr td:nth-child(3)').forEach(cell => {
-            total += parseFloat(cell.textContent || 0);
+            const raw = parseFloat(cell.dataset.timeRaw || 0);
+            total += isNaN(raw) ? 0 : raw;
         });
-        document.getElementById('overall-time').textContent = total.toFixed(1);
+        document.getElementById('overall-time').textContent = formatTime(total);
     }
 
     /**
      * Shows the OBS overlay URL input field with prefilled value.
      */
     function showObsUrl() {
-        const url = window.location.origin + `/overlay/runs/${runId}/`;
+        const url = window.location.origin + `/overlay/runs/${runId}/timer/`;
         const obsUrl = document.getElementById('obs-url');
         obsUrl.value = url;
         obsUrl.classList.remove('hidden');
@@ -449,6 +454,13 @@ document.addEventListener("DOMContentLoaded", async() => {
             if (controllerCell) controllerCell.innerHTML = '';
             if (statusCell) statusCell.textContent = 'Finished';
         });
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        const tenths = Math.floor((seconds % 1) * 10);
+        return `${minutes}:${secs}.${tenths}`;
     }
 
 

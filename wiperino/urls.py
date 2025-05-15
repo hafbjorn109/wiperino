@@ -55,6 +55,7 @@ urlpatterns = [
     path('runs/<int:run_id>/', playerhub_views.RunDashboardView.as_view(), name='runs-view'),
     path('runs/', playerhub_views.RunListDashboardView.as_view(), name='runs-list'),
     path('overlay/runs/<int:run_id>/', playerhub_views.OverlayRunView.as_view(), name='overlay-run'),
+    path('overlay/runs/<int:run_id>/timer/', playerhub_views.OverlayTimerView.as_view(), name='overlay-timer'),
 
     # HTML views - polls
     path('polls/create/', playerhub_views.CreatePollSessionView.as_view(), name='polls-create'),

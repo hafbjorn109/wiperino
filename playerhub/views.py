@@ -333,6 +333,13 @@ class OverlayPollView(TemplateView):
     template_name = 'polls/overlay_poll.html'
 
 
+class OverlayTimerView(TemplateView):
+    """
+    View responsible for displaying an overlay of a timer for OBS streaming.
+    """
+    template_name = 'playerhub/overlay_timer.html'
+
+
 class ViewerPollView(TemplateView):
     """
     View responsible for displaying list of questions for viewers to vote.

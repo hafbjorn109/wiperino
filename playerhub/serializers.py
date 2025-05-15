@@ -388,6 +388,7 @@ class TimerBroadcastSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=
                                    ['start_timer', 'timer_update', 'finish_timer', 'pause_timer', 'run_finished'])
     segment_id = serializers.IntegerField(min_value=1, required=False)
+    segment_name = serializers.CharField(max_length=50, required=False)
     elapsed_time = serializers.FloatField(min_value=0.0, required=False)
     user = serializers.CharField()
     started_at = serializers.DateTimeField(required=False, allow_null=True)
