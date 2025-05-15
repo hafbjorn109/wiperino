@@ -35,6 +35,15 @@ document.addEventListener("DOMContentLoaded", async() => {
                 handleFinishTimer(data);
                 break;
 
+            case 'run_finished':
+                handleRunFinished();
+                break;
+
+            case 'new_segment':
+                renderSegmentRow(data);
+                recalculateOverall();
+                break;
+
             default:
                 console.warn('[Timer WS] Unknown type:', data.type);
         }
@@ -252,13 +261,6 @@ document.addEventListener("DOMContentLoaded", async() => {
             if (statusCell) statusCell.textContent = 'Finished';
             if (controllerCell) controllerCell.innerHTML = '';
 
-            socket.send(JSON.stringify({
-                type: 'finish_timer',
-                segment_id: segmentId,
-                elapsed_time: finalTime
-            }));
-            console.log('[WS] Sent finish_timer', segmentId, finalTime);
-
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
@@ -336,6 +338,8 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+
+
     function recalculateOverall() {
         let total = 0.0;
         document.querySelectorAll('.timer-table-body tr td:nth-child(3)').forEach(cell => {
@@ -375,8 +379,13 @@ document.addEventListener("DOMContentLoaded", async() => {
                 return;
             }
 
-            renderSegmentRow(responseData);
-            recalculateOverall();
+            socket.send(JSON.stringify({
+                type: 'new_segment',
+                segment_id: responseData.id,
+                segment_name: responseData.segment_name,
+                elapsed_time: responseData.elapsed_time,
+                is_finished: responseData.is_finished
+            }));
 
             document.getElementById('new-segment').value = '';
 
@@ -385,6 +394,22 @@ document.addEventListener("DOMContentLoaded", async() => {
             alert('Something went wrong. Try again.');
         }
     }
+
+    function handleRunFinished() {
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.classList.add('hidden');
+        });
+
+        document.getElementById('overall-status').textContent = 'Finished';
+
+        document.querySelectorAll('.timer-table-body tr').forEach(row => {
+            const controllerCell = row.querySelector('td:nth-child(4)');
+            const statusCell = row.querySelector('td:nth-child(2)');
+            if (controllerCell) controllerCell.innerHTML = '';
+            if (statusCell) statusCell.textContent = 'Finished';
+        });
+    }
+
 
 
     tableBody.addEventListener('click', (e) => timerController(e));

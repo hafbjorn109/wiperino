@@ -383,11 +383,29 @@ class TimerFinishSerializer(TimerBaseSerializer):
 class TimerBroadcastSerializer(serializers.Serializer):
     """
     Output serializer for broadcasting any timer-related event,
-    including start, pause (update), and finish.
+    including start, pause, update, and finish.
     """
-    type = serializers.ChoiceField(choices=['start_timer', 'timer_update', 'finish_timer'])
-    segment_id = serializers.IntegerField(min_value=1)
-    elapsed_time = serializers.FloatField(min_value=0.0)
+    type = serializers.ChoiceField(choices=
+                                   ['start_timer', 'timer_update', 'finish_timer', 'pause_timer', 'run_finished'])
+    segment_id = serializers.IntegerField(min_value=1, required=False)
+    elapsed_time = serializers.FloatField(min_value=0.0, required=False)
     user = serializers.CharField()
     started_at = serializers.DateTimeField(required=False, allow_null=True)
     is_finished = serializers.BooleanField(default=False)
+
+
+class NewTimerSegmentSerializer(serializers.Serializer):
+    """
+    Input serializer for broadcasting newly created timer segment to clients.
+    """
+    type = serializers.ChoiceField(choices=['new_segment'])
+    segment_id = serializers.IntegerField(min_value=1)
+    segment_name = serializers.CharField(max_length=50)
+    elapsed_time = serializers.FloatField(min_value=0.0)
+    is_finished = serializers.BooleanField(default=False)
+    user = serializers.CharField(required=False)
+
+    def validate_segment_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("Segment name cannot be empty.")
+        return value

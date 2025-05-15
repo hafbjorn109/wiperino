@@ -462,7 +462,9 @@ class TimerConsumer(AsyncWebsocketConsumer):
         input_serializer_map = {
             'start_timer': ph_serializers.TimerStartSerializer,
             'pause_timer': ph_serializers.TimerPauseSerializer,
-            'finish_timer': ph_serializers.TimerFinishSerializer
+            'finish_timer': ph_serializers.TimerFinishSerializer,
+            'run_finished': ph_serializers.RunFinishedSerializer,
+            'new_segment': ph_serializers.NewTimerSegmentSerializer,
         }
 
         serializer_class = input_serializer_map.get(message_type)
@@ -484,13 +486,20 @@ class TimerConsumer(AsyncWebsocketConsumer):
             return
 
         validated_data = serializer.validated_data
+
+        if message_type == 'run_finished':
+            print(f"[TIMER WS] Run {self.run_id} marked as finished by user {self.scope['user'].username}")
+
         payload = {
             'type': message_type,
             **validated_data,
             'user': self.scope['user'].username
         }
 
-        broadcast = ph_serializers.TimerBroadcastSerializer(instance=payload)
+        if message_type == 'new_segment':
+            broadcast = ph_serializers.NewTimerSegmentSerializer(instance=payload)
+        else:
+            broadcast = ph_serializers.TimerBroadcastSerializer(instance=payload)
 
         await self.channel_layer.group_send(self.room_group_name, broadcast.data)
 
@@ -519,4 +528,22 @@ class TimerConsumer(AsyncWebsocketConsumer):
         Used to mark a timer segment as completed and stop updates.
         """
         serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+
+    async def run_finished(self, event):
+        """
+        Handles broadcasting of 'run_finished' events to overlay or other clients.
+        Signals that the run session has been completed.
+        """
+        serializer = ph_serializers.TimerBroadcastSerializer(event)
+        await self.send(text_data=json.dumps(serializer.data))
+
+
+    async def new_segment(self, event):
+        """
+        Broadcasts a newly added segment to all connected clients in the run group.
+        Used to synchronize table updates between multiple views.
+        """
+        serializer = ph_serializers.NewTimerSegmentSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
