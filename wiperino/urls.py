@@ -45,6 +45,9 @@ urlpatterns = [
     path('api/login/', TokenObtainPairView.as_view(), name='api-login'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='api-token-refresh'),
 
+    # Export Functions
+    path('api/runs/<int:run_id>/export/', playerhub_views.RunExportView.as_view(), name='run-export'),
+
     # HTML views - user authorization
     path('login/', users_views.LoginPageView.as_view(), name='login'),
     path('register/', users_views.RegisterPageView.as_view(), name='register'),

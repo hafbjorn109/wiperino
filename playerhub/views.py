@@ -1,15 +1,22 @@
 import uuid
 import json
+from http.client import HTTPResponse
+from io import BytesIO
+
 import redis
+import openpyxl
 from django.conf import settings
 from rest_framework.response import Response
+from django.http import HttpResponse
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.views import APIView
 from .models import Run, WipeCounter, Timer, Game
 from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer, \
     CreatePollSessionSerializer, PollQuestionSerializer, ErrorResponseSerializer, SuccessResponseSerializer
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
+
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
 
@@ -345,3 +352,62 @@ class ViewerPollView(TemplateView):
     View responsible for displaying list of questions for viewers to vote.
     """
     template_name = 'polls/viewer_poll.html'
+
+
+class RunExportView(APIView):
+    """
+    View responsible for exporting run data to Excel.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, run_id):
+        try:
+            run = Run.objects.get(id=run_id)
+        except Run.DoesNotExist:
+            return Response({'detail': 'Run not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if run.user != request.user:
+            return Response({'detail': 'You do not have permission to access this run'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+
+        if run.mode == 'WIPECOUNTER':
+            ws.title = 'Wipe Counter'
+            ws.append([f'{run.game.name}'])
+            ws.append([f'{run.name}'])
+            ws.append(['Segment', 'Wipes'])
+            total = 0
+            for seg in WipeCounter.objects.filter(run=run).order_by('id'):
+                ws.append([seg.segment_name, seg.count])
+                total += seg.count
+            ws.append([])
+            ws.append(['Total', total])
+            filename = f'wipes_run_{run_id}.xlsx'
+
+        elif run.mode == 'SPEEDRUN':
+            ws.title = 'Speedrun'
+            ws.append([f'{run.game.name}'])
+            ws.append([f'{run.name}'])
+            ws.append(['Segment', 'Time (s)'])
+            total = 0.0
+            for seg in Timer.objects.filter(run=run).order_by('id'):
+                ws.append([seg.segment_name, round(seg.elapsed_time, 2),])
+                total += seg.elapsed_time or 0.0
+            ws.append([])
+            ws.append(['Total', round(total, 2)])
+            filename = f'speedrun_run_{run_id}.xlsx'
+
+        else:
+            return Response({'detail': 'Invalid run mode'}, status=status.HTTP_400_BAD_REQUEST)
+
+        stream = BytesIO()
+        wb.save(stream)
+        stream.seek(0)
+
+        response = HttpResponse(stream.read(),
+                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+        return response
