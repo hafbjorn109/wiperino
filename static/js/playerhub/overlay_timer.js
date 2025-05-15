@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", async() => {
     socket.onerror = (e) => console.error('[Overlay WS] Error', e);
     socket.onclose = (e) => console.warn('[Overlay WS] Closed', e);
 
+    /**
+     * Handles incoming WebSocket messages and routes them by event type.
+     */
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.log('[Overlay WS] Message', data);
@@ -53,8 +56,13 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    // Initial data load
     await fetchAndDisplayRun();
 
+    /**
+     * Fetches initial run and segment data from public API.
+     * Displays run name, game title, and preexisting segments.
+     */
     async function fetchAndDisplayRun() {
         try {
             const responseRun = await fetch(`/public-api/runs/${runId}/`, {
@@ -97,6 +105,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Renders up to the last 10 segments from `allSegments` into the HTML table.
+     */
     function renderSegmentList() {
         const lastSegments = allSegments.slice(-10);
         segmentsDiv.innerHTML = '';
@@ -112,6 +123,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         });
     }
 
+    /**
+     * Sums all elapsed times from visible segments and updates the overall display.
+     */
     function updateOverall() {
         const cells = document.querySelectorAll('.segment-time');
         let total = 0;
@@ -124,6 +138,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         overallTime.textContent = formatTime(total);
     }
 
+     /**
+     * Handles the pause event by stopping interval and updating segment time.
+     */
     function handlePauseTimer(data) {
         const segmentId = Number(data.segment_id);
         if (overlayActiveTimers[segmentId]) {
@@ -144,6 +161,10 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+
+    /**
+     * Handles finish event by stopping interval and marking the segment as completed.
+     */
     function handleFinishTimer(data) {
         const segmentId = Number(data.segment_id);
 
@@ -161,6 +182,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         }
     }
 
+    /**
+     * Starts the timer interval for a given segment and updates the display.
+     */
     function handleStartTimer(data) {
         const segmentId = Number(data.segment_id);
         const startTime = new Date(data.started_at).getTime();
@@ -182,6 +206,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         },200);
     }
 
+    /**
+     * Handles time formatting for MM:SS:TT
+     */
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);

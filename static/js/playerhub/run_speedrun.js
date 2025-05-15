@@ -456,6 +456,9 @@ document.addEventListener("DOMContentLoaded", async() => {
         });
     }
 
+    /**
+     * Handles time formatting for MM:SS:TT
+     */
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
