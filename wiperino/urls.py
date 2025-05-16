@@ -73,20 +73,4 @@ urlpatterns = [
     path('polls/o/<str:overlay_token>/', playerhub_views.OverlayPollView.as_view(), name='polls-overlay'),
     path('polls/v/<str:client_token>/', playerhub_views.ViewerPollView.as_view(), name='polls-viewer'),
 
-
-
-    # NOT USED SOLUTION - TO CLEAN UP LATER
-    # # API endpoints - livehub
-    # path('api/polls/mod/<str:moderator_session_code>/',
-    #      livehub_views.ModeratorPollListView.as_view(), name='api-polls-moderator'),
-    # path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/',
-    #      livehub_views.ModeratorPollView.as_view(), name='api-poll-moderator'),
-    # path('api/polls/<str:session_code>/',
-    #      livehub_views.ViewerPollListView.as_view(), name='api-polls'),
-    # path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/',
-    #      livehub_views.ModeratorAnswerListView.as_view(), name='api-answers-moderator'),
-    # path('api/polls/mod/<str:moderator_session_code>/<int:poll_id>/answers/<int:answer_id>/',
-    #      livehub_views.ModeratorAnswerView.as_view(), name='api-answer-moderator'),
-    # path('api/polls/<str:session_code>/<int:poll_id>/answers/',
-    #      livehub_views.ViewerAnswerListView.as_view(), name='api-answers'),
 ]

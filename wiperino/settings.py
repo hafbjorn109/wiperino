@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users',
-    'livehub',
     'playerhub',
     'channels',
     'rest_framework',
