@@ -19,7 +19,6 @@ def test_add_run(client):
         'game': game.id,
         'mode': 'SPEEDRUN',
         'is_finished': False,
-        'session_code': '223'
     }
     print(data)
     print(game.id)
@@ -41,7 +40,6 @@ def test_not_logged_in_user_add_run(client):
         'game': 'Test Game',
         'mode': 'SPEEDRUN',
         'is_finished': False,
-        'session_code': '223'
     }
     response = client.post('/api/runs/', data, format='json')
     assert response.status_code == 401, 'User should be not authenticated'

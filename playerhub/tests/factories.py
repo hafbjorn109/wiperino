@@ -28,8 +28,6 @@ class RunFactory(factory.django.DjangoModelFactory):
     mode = fuzzy.FuzzyChoice(['SPEEDRUN', 'WIPECOUNTER'])
     user = factory.SubFactory(UserFactory)
     is_finished = factory.Faker('boolean', chance_of_getting_true=20)
-    session_code = factory.Faker('bothify', text='???-####')
-    moderator_session_code = factory.Faker('bothify', text='???-####')
 
 
 class WipeCounterFactory(factory.django.DjangoModelFactory):
