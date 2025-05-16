@@ -27,11 +27,13 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        """Removes the user from the group upon WebSocket disconnection."""
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        """Leaves the group when the WebSocket connection is closed."""
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+
 
     async def receive(self, text_data=None, bytes_data=None):
         """
@@ -172,16 +174,18 @@ class PollConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         """Leaves the group when the WebSocket connection is closed."""
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     async def receive(self, text_data=None, bytes_data=None):
         """
         Handles incoming messages from the client and dispatches them to the group.
         Supports publishing a question and unpublishing a question to OBS overlay and votes view.
         """
+
         data = json.loads(text_data)
         message_type = data.get('type')
 
@@ -429,13 +433,12 @@ class TimerConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        """
-        Handles WebSocket disconnection and removes the client from the timer group.
-        """
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        """Leaves the group when the WebSocket connection is closed."""
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     async def receive(self, text_data=None, bytes_data=None):
         """
