@@ -73,7 +73,8 @@ class WipeCounterListView(generics.ListCreateAPIView):
     serializer_class = WipeCounterSerializer
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'], run__user=self.request.user).order_by('id')
+        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'],
+                                          run__user=self.request.user).order_by('id')
 
     def perform_create(self, serializer):
         run = get_object_or_404(Run, id=self.kwargs['run_id'], user=self.request.user)

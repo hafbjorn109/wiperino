@@ -1,11 +1,8 @@
 from rest_framework import generics
 from .serializers import CreateUserSerializer
-from django.urls import reverse_lazy
-from django.contrib.auth.views import  LogoutView, TemplateView
+from django.contrib.auth.views import  TemplateView
 from rest_framework.permissions import AllowAny
 
-
-# Create your views here.
 
 class RegisterView(generics.CreateAPIView):
     """

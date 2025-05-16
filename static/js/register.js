@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
         });
 
-        /** @type {{access: string, refresh: string }} */
+
         const loginData = await loginResponse.json();
 
         if (loginResponse.ok) {
