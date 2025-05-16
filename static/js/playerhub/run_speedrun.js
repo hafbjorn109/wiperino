@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", async() => {
 
         if (e.target.classList.contains('finish-btn')) {
             const timeCell = document.getElementById(`time-segment-${segmentId}`);
-            const elapsed = parseFloat(timeCell.textContent || 0.0);
+            const elapsed = parseFloat(timeCell.dataset.timeRaw || 0.0);
             socket.send(JSON.stringify({
                 type: 'finish_timer',
                 segment_id: segmentId,
