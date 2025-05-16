@@ -15,6 +15,10 @@ controlling poll visibility and viewer access for live voting.
 * OBS-compatible overlay with real-time updates
 * WebSocket-based live synchronization via Redis
 * JWT-based authentication (with optional test user)
+* Export run results as `.xlsx` files (wipe or speedrun mode)
+* Attach a YouTube link to each run for VOD reference
+* Resume or view past runs (with "Continue" and "See results" options)
+
 
 ---
 
@@ -31,6 +35,8 @@ controlling poll visibility and viewer access for live voting.
 * **Vanilla JavaScript** (frontend)
 * **OBS Studio** (Browser Source integration)
 * **pytest + factory\_boy** (testing)
+* **Chart.js + chartjs-plugin-datalabels**
+* **OpenPyXL**
 
 ---
 
@@ -90,8 +96,10 @@ Password: testuser
 
 ### 🖼️ OBS Integration
 
-* Use the `overlay` URL as a **Browser Source** in OBS (e.g. `http://localhost:8000/polls/o/<token>/`)
-* The overlay will show the currently published poll in real-time
+Use the overlay URLs as **Browser Sources** in OBS:
+* `http://localhost:8000/overlay/runs/<run_id>/` – wipe counter overlay
+* `http://localhost:8000/overlay/runs/<run_id>/timer/` – timer overlay
+* `http://localhost:8000/polls/o/<token>/` – poll overlay
 
 ---
 
@@ -126,6 +134,12 @@ Password: testuser
 * `ws/runs/<run_id>/` – wipe/timer dashboard communication
 * `ws/overlay/runs/<run_id>/` – OBS overlay sync
 * `ws/polls/<token>/` – poll control, overlay, voting
+
+### 📂 Export & Public Views For Overlays:
+* `GET /api/runs/<id>/export/` – download run data as `.xlsx`
+* `GET /public-api/runs/<id>/` – public run info for overlays
+* `GET /public-api/runs/<id>/wipecounters/` – public wipe counter list
+* `GET /public-api/runs/<id>/timers/` – public timer list
 
 ---
 
