@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async() => {
     socket.onmessage = (e) => {
         try{
             const data = JSON.parse(e.data);
-            console.log('Received:', data);
 
             if (data.type === 'error') {
                 alert('Error: ' + data.error);

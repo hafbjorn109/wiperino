@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", async() => {
      */
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log('[Overlay WS] Message', data);
 
         switch (data.type) {
             case 'start_timer':

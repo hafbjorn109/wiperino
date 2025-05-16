@@ -114,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (data.type === 'vote') {
-                console.log('Vote update received:', data);
                 renderChart(data);
             }
         } catch (err) {

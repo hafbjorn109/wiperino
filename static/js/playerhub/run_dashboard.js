@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             });
             const responseData = await response.json();
-            console.log(responseData);
 
             if(!response.ok) {
                 const errorText = Object.values(responseData).flat().join(', ');

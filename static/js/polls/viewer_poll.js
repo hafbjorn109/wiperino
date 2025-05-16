@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', async() => {
             }
 
             if (data.type === 'new_question') {
-                console.log('[WS] New question payload:', data.question);
                 renderQuestion(data.question);
             }
 
@@ -102,12 +101,6 @@ document.addEventListener('DOMContentLoaded', async() => {
           alert('No new votes selected.');
           return;
         }
-
-        console.log('VOTING PAYLOAD:', {
-          type: 'vote',
-          voter_id: voterId,
-          votes: votes
-        });
 
         Object.entries(votes).forEach(([question_id, answer]) => {
             socket.send(JSON.stringify({

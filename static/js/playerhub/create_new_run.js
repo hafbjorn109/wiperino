@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', async() => {
                 return;
             }
 
-            console.log('Game Added');
             document.getElementById('new-game-input').value = '';
             addGameSection.classList.toggle('hidden');
 

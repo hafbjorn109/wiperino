@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!access) {
         if (!isPublic) {
             window.location.href = '/login/';
-            console.log('No access token');
             return;
         }
     }
@@ -17,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (payload.exp < now) {
         localStorage.removeItem('access');
         localStorage.removeItem('refresh');
-        console.log('Token expired');
         window.location.href = '/login/';
     }
 

@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         switch(data.type) {
             case 'wipe_update':
-                console.log('trying to wipe_update', data);
                 updateSegmentCount(Number(data.segment_id), data.count);
                 updateOverall();
                 break;
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', async() => {
                 break;
 
             case 'new_segment':
-                console.log('trying to new_segment', data);
                 allSegments.push({
                     id: Number(data.segment_id),
                     segment_name: data.segment_name,
@@ -118,7 +116,6 @@ document.addEventListener('DOMContentLoaded', async() => {
      * Also updates the count inside the internal allSegments array.
      */
     function updateSegmentCount(segmentId, count) {
-        console.log('updatesegmentcount fired:', segmentId, count);
         const segmentEl = document.querySelector(`[data-id="${segmentId}"]`);
         if (segmentEl) {
             segmentEl.textContent = count;

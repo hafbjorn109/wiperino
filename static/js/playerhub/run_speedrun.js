@@ -17,21 +17,17 @@ document.addEventListener("DOMContentLoaded", async() => {
 
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log("[Timer WS] onmessage", data)
 
         switch (data.type) {
             case 'start_timer':
-                console.log(`[Start] Segment ${data.segment_id} started at ${data.started_at}, ${data}`);
                 handleStartTimer(data);
                 break;
 
             case 'pause_timer':
-                console.log(`[Pause] Segment ${data.segment_id} paused at ${data.elapsed_time}s`);
                 handlePauseTimer(data);
                 break;
 
             case 'finish_timer':
-                console.log(`[Finish] Segment ${data.segment_id} finished at ${data.elapsed_time}s`);
                 handleFinishTimer(data);
                 break;
 
@@ -138,7 +134,6 @@ document.addEventListener("DOMContentLoaded", async() => {
             const timeCell = document.getElementById(`time-segment-${segmentId}`)
             const elapsed = parseFloat(timeCell.dataset.timeRaw || 0.0);
             const now = new Date().toISOString();
-            console.log('[WS] Sending start_timer with elapsed:', elapsed);
 
             socket.send(JSON.stringify({
                 type: 'start_timer',
@@ -146,7 +141,6 @@ document.addEventListener("DOMContentLoaded", async() => {
                 started_at: now,
                 elapsed_time: elapsed
             }));
-            console.log('[WS] Sent start_timer', segmentId)
         }
 
         if (e.target.classList.contains('pause-btn')) {
@@ -157,7 +151,6 @@ document.addEventListener("DOMContentLoaded", async() => {
                 segment_id: segmentId,
                 elapsed_time: elapsed
             }));
-            console.log('[WS] Sent pause_timer', segmentId)
         }
 
         if (e.target.classList.contains('finish-btn')) {
@@ -168,7 +161,6 @@ document.addEventListener("DOMContentLoaded", async() => {
                 segment_id: segmentId,
                 elapsed_time: elapsed
             }));
-            console.log('[WS] Sent finish_timer', segmentId)
         }
     }
 
@@ -232,8 +224,6 @@ document.addEventListener("DOMContentLoaded", async() => {
                 alert(`Error: ${errorText}`);
                 return;
             }
-
-            console.log('[WS] Sent pause_timer', responseData)
 
         } catch (err) {
             console.error(err);

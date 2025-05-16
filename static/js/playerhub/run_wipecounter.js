@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Handle messages received via WebSocket
     socket.onmessage = (e) => {
-        console.log("WS onmessage", e.data)
         const data = JSON.parse(e.data);
 
         switch (data.type) {
@@ -33,7 +32,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 allSegmentRows.forEach(segmentRow => {
                     const id = segmentRow.querySelector('.btn-small')?.dataset?.id;
                     if (id && parseInt(id) === parseInt(data.segment_id)) {
-                        console.log('match found')
                         const countCell = segmentRow.querySelector('td:nth-child(3)');
                         if (countCell) countCell.textContent = data.count;
                     }
@@ -42,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 break;
 
             case 'segment_finished':
-                console.log('received segment_finished', data.segment_id);
                 document.querySelectorAll('.wipecounter-table-body tr').forEach(row => {
                     const btns = row.querySelectorAll('.btn-small');
                     btns.forEach(btn => {
@@ -146,7 +143,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         segment_id: segmentId,
                         count: newCount,
                     }));
-                    console.log("WS send wipe_update:", segmentId, newCount);
 
                     } catch (err) {
                         console.error(err);
@@ -209,7 +205,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         return;
                     }
 
-                    console.log('sent segment_finished', segmentId);
                     socket.send(JSON.stringify({
                         type: 'segment_finished',
                         segment_id: segmentId,

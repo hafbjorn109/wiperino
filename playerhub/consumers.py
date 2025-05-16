@@ -16,7 +16,6 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Joins the user to a group based on the run ID."""
-        print('WS CONNECTED')
         self.run_id = self.scope['url_route']['kwargs']['run_id']
         self.room_group_name = f'run_{self.run_id}'
 
@@ -39,7 +38,6 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         Handles incoming messages from the client and dispatches them to the group.
         Supports wipe updates, segment creation, finishing segments, and finishing runs.
         """
-        print("WS RECEIVE:", text_data)
         data = json.loads(text_data)
         message_type = data.get('type')
 
@@ -130,7 +128,6 @@ class OverlayConsumer(AsyncWebsocketConsumer):
 
     async def wipe_update(self, event):
         """Sends wipe count updates to the overlay client."""
-        print("Overlay WS received wipe_update:", event)
         serializer = ph_serializers.WipeUpdateBroadcastSerializer(instance=event)
         await self.send(text_data=json.dumps(serializer.data))
 
@@ -187,7 +184,6 @@ class PollConsumer(AsyncWebsocketConsumer):
         """
         data = json.loads(text_data)
         message_type = data.get('type')
-        print('[WS] Received data: ', data)
 
         if (message_type in ['publish_question', 'unpublish_question']
                 and '-mod' not in self.client_token):
@@ -254,7 +250,6 @@ class PollConsumer(AsyncWebsocketConsumer):
                 await self.send(text_data=json.dumps(error_serializer.data))
                 return
 
-            print('[DEBUG] serializer.data:', serializer.data)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -286,7 +281,6 @@ class PollConsumer(AsyncWebsocketConsumer):
             )
 
         elif data.get('type') == 'vote':
-            print('[WS] Trying to validate vote:', data)
             serializer = ph_serializers.PollVoteSerializer(data=data)
             if not serializer.is_valid():
                 error_serializer = ph_serializers.WebSocketErrorSerializer({
@@ -327,8 +321,6 @@ class PollConsumer(AsyncWebsocketConsumer):
                                        json.dumps(question),
                                        ex=86400)
 
-            print(f'[WS] Updated Redis votes for {question_id}:', question['votes'])
-
             vote_data = {
                 'type': 'vote',
                 'question_id': question_id,
@@ -357,7 +349,6 @@ class PollConsumer(AsyncWebsocketConsumer):
             questions_ids = r.lrange(f'poll:session:{self.session_id}:questions', 0, -1)
             for qid in questions_ids:
                 q_raw = r.get(f'poll:question:{qid}')
-                print('[WS] sending new_question:', json.loads(q_raw))
                 if not q_raw:
                     error_serializer = ph_serializers.WebSocketErrorSerializer({
                         'type': 'error',
