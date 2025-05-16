@@ -1,6 +1,6 @@
 import pytest
 from playerhub.models import Run
-from .factories import UserFactory, RunFactory, GameFactory
+from .factories import UserFactory, RunFactory, GameFactory, WipeCounterFactory, TimerFactory
 
 
 @pytest.mark.django_db
@@ -183,3 +183,60 @@ def test_delete_foreign_user_run(client):
     run = RunFactory(game=game)
     response = client.delete(f'/api/runs/{run.id}/')
     assert response.status_code == 404, 'User should not be able to delete foreign user run'
+
+
+@pytest.mark.django_db
+def test_export_wipecounter_excel(client):
+    """
+    Test exporting a WIPECOUNTER run to Excel by its owner.
+    """
+    user = UserFactory()
+    client.force_authenticate(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game, mode='WIPECOUNTER')
+    WipeCounterFactory.create_batch(5, run=run)
+    WipeCounterFactory.create_batch(5, run=run)
+
+    response = client.get(f'/api/runs/{run.id}/export/', {}, format='json')
+
+    assert response.status_code == 200, 'Run was not exported'
+    assert response['Content-Type'] == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    assert f'wipes_run_{run.id}.xlsx' in response['Content-Disposition']
+
+
+@pytest.mark.django_db
+def test_export_speedrun_excel(client):
+    """
+    Test exporting a SPEEDRUN to Excel by its owner.
+    """
+    user = UserFactory()
+    client.force_authenticate(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game, mode='SPEEDRUN')
+    TimerFactory.create_batch(5, run=run)
+
+    response = client.get(f'/api/runs/{run.id}/export/', {}, format='json')
+
+    assert response.status_code == 200, 'Run was not exported'
+    assert response['Content-Type'] == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    assert f'speedrun_run_{run.id}.xlsx' in response['Content-Disposition']
+
+
+@pytest.mark.django_db
+def test_export_foreign_run(client):
+    run = RunFactory()
+    user = UserFactory()
+    client.force_authenticate(user=user)
+    response = client.get(f'/api/runs/{run.id}/export/', {}, format='json')
+    assert response.status_code == 403, 'User should not be able to export foreign run'
+
+
+@pytest.mark.django_db
+def test_export_invalid_mode(client):
+    user = UserFactory()
+    client.force_authenticate(user=user)
+    game = GameFactory()
+    run = RunFactory(user=user, game=game, mode='INVALID')
+    response = client.get(f'/api/runs/{run.id}/export/', {}, format='json')
+    assert response.status_code == 400, 'Invalid mode should return 400'
+    assert 'Invalid run mode' in response.json()['detail']
