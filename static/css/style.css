@@ -400,3 +400,35 @@ body {
 .segment-name-cell {
   text-align: left;
 }
+
+
+#forgot-password-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+#reset-password-form input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="password"] {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}

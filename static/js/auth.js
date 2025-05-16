@@ -48,5 +48,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    setInterval(refreshToken, 240000);
+    setInterval(refreshToken, 180000);
 })

@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """
@@ -28,3 +31,41 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('password2')
         return User.objects.create_user(**validated_data)
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """
+    Serializer for requesting a password reset.
+    Accepts email as input.
+    """
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer for confirming a password reset.
+    Accepts uid, token, and new password as input.
+    """
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    password = serializers.CharField()
+    password2 = serializers.CharField()
+
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError("Passwords don't match.")
+
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uid']))
+            self.user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise serializers.ValidationError("Invalid user.")
+
+        if not PasswordResetTokenGenerator().check_token(self.user, data['token']):
+            raise serializers.ValidationError("Invalid or expired token.")
+
+        return data
+
+    def save(self):
+        self.user.set_password(self.validated_data['password'])
+        self.user.save()

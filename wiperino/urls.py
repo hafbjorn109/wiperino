@@ -44,6 +44,10 @@ urlpatterns = [
     path('api/register/', users_views.RegisterView.as_view(), name='api-register'),
     path('api/login/', TokenObtainPairView.as_view(), name='api-login'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='api-token-refresh'),
+    path('api/password-reset-request/',
+         users_views.PasswordResetRequestView.as_view(), name='api-password-reset-request'),
+    path('api/password-reset-confirm/',
+         users_views.PasswordResetConfirmView.as_view(), name='api-password-reset-confirm'),
 
     # Export Functions
     path('api/runs/<int:run_id>/export/', playerhub_views.RunExportView.as_view(), name='run-export'),
@@ -51,6 +55,9 @@ urlpatterns = [
     # HTML views - user authorization
     path('login/', users_views.LoginPageView.as_view(), name='login'),
     path('register/', users_views.RegisterPageView.as_view(), name='register'),
+    path('reset-password/<uid>/<token>/',
+         users_views.ResetPasswordPageView.as_view(), name='reset-password'),
+    path('forgot-password/', users_views.ForgotPasswordView.as_view(), name='forgot-password'),
 
     # HTML views - playerhub
     path('dashboard/', playerhub_views.MainDashboardView.as_view(), name='main-dashboard'),
