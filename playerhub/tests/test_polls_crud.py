@@ -5,6 +5,7 @@ import redis
 import json
 r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
 
+
 @pytest.mark.django_db
 def test_create_poll_session(client):
     response = client.post('/api/polls/create_session/', {}, format='json')
@@ -111,5 +112,3 @@ def test_delete_poll_question(client):
         'Question was not deleted from Redis'
     assert question_id not in r.lrange(
         f'poll:session:{session_id}:questions', 0, -1), 'Question was not removed from session'
-
-

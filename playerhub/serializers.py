@@ -61,6 +61,7 @@ class WipeCounterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Segment name cannot be empty.")
         return value
 
+
 class TimerSerializer(serializers.ModelSerializer):
     """
     Serializer for the Timer model.
@@ -386,8 +387,9 @@ class TimerBroadcastSerializer(serializers.Serializer):
     Output serializer for broadcasting any timer-related event,
     including start, pause, update, and finish.
     """
-    type = serializers.ChoiceField(choices=
-                                   ['start_timer', 'timer_update', 'finish_timer', 'pause_timer', 'run_finished'])
+    type = serializers.ChoiceField(
+        choices=['start_timer', 'timer_update',
+                 'finish_timer', 'pause_timer', 'run_finished'])
     segment_id = serializers.IntegerField(min_value=1, required=False)
     segment_name = serializers.CharField(max_length=50, required=False)
     elapsed_time = serializers.FloatField(min_value=0.0, required=False)

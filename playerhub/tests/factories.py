@@ -12,6 +12,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     email = factory.Faker('email')
     password = factory.PostGenerationMethodCall('set_password', 'pass1234')
 
+
 class GameFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'playerhub.Game'

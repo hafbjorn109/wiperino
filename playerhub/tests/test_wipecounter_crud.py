@@ -118,9 +118,11 @@ def test_change_wipecounter(client):
     change_data = {
         'segment_name': 'New Segment Name',
     }
-    response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/', change_data, format='json')
+    response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/',
+                            change_data, format='json')
     assert response.status_code == 200, 'WipeCounter was not changed'
-    assert response.data['segment_name'] == change_data['segment_name'], 'WipeCounter was not changed'
+    assert response.data['segment_name'] == change_data['segment_name'], \
+        'WipeCounter was not changed'
 
 
 @pytest.mark.django_db
@@ -138,7 +140,8 @@ def test_change_not_logged_in_wipecounter(client):
     change_data = {
         'segment_name': 'New Segment Name',
     }
-    response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/', change_data, format='json')
+    response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/',
+                            change_data, format='json')
     assert response.status_code == 401, 'User should be not authenticated'
 
 
@@ -158,7 +161,8 @@ def test_change_foreign_user_wipecounter(client):
     change_data = {
         'segment_name': 'New Segment Name',
     }
-    response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/', change_data, format='json')
+    response = client.patch(f'/api/runs/{run.id}/wipecounters/{wipecounter.id}/',
+                            change_data, format='json')
     assert response.status_code == 404, 'User should not be able to change foreign user wipecounter'
 
 

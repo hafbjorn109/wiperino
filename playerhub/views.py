@@ -1,8 +1,6 @@
 import uuid
 import json
-from http.client import HTTPResponse
 from io import BytesIO
-
 import redis
 import openpyxl
 from django.conf import settings
@@ -12,8 +10,10 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from .models import Run, WipeCounter, Timer, Game
-from .serializers import RunSerializer, WipeCounterSerializer, TimerSerializer, GameSerializer, \
-    CreatePollSessionSerializer, PollQuestionSerializer, ErrorResponseSerializer, SuccessResponseSerializer
+from .serializers import (RunSerializer, WipeCounterSerializer,
+                          TimerSerializer, GameSerializer,
+                          CreatePollSessionSerializer, PollQuestionSerializer,
+                          ErrorResponseSerializer, SuccessResponseSerializer)
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
@@ -62,7 +62,7 @@ class PublicWipecounterListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id = self.kwargs['run_id']).order_by('id')
+        return WipeCounter.objects.filter(run__id=self.kwargs['run_id']).order_by('id')
 
 
 class WipeCounterListView(generics.ListCreateAPIView):
@@ -73,7 +73,7 @@ class WipeCounterListView(generics.ListCreateAPIView):
     serializer_class = WipeCounterSerializer
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id = self.kwargs['run_id'],
+        return WipeCounter.objects.filter(run__id=self.kwargs['run_id'],
                                           run__user=self.request.user).order_by('id')
 
     def perform_create(self, serializer):
@@ -91,9 +91,8 @@ class WipeCounterView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         return get_object_or_404(
             WipeCounter.objects.filter(
-            run__id = self.kwargs['run_id'],
-            run__user= self.request.user
-        ), id=self.kwargs['wipecounter_id'])
+                run__id=self.kwargs['run_id'], run__user=self.request.user),
+            id=self.kwargs['wipecounter_id'])
 
 
 class TimerListView(generics.ListCreateAPIView):
@@ -104,7 +103,9 @@ class TimerListView(generics.ListCreateAPIView):
     serializer_class = TimerSerializer
 
     def get_queryset(self):
-        return Timer.objects.filter(run__id = self.kwargs['run_id'], run__user=self.request.user)
+        return Timer.objects.filter(
+            run__id=self.kwargs['run_id'],
+            run__user=self.request.user)
 
     def perform_create(self, serializer):
         run = get_object_or_404(Run, id=self.kwargs['run_id'], user=self.request.user)
@@ -119,7 +120,7 @@ class PublicTimerListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return Timer.objects.filter(run__id = self.kwargs['run_id']).order_by('id')
+        return Timer.objects.filter(run__id=self.kwargs['run_id']).order_by('id')
 
 
 class TimerView(generics.RetrieveUpdateDestroyAPIView):
@@ -130,11 +131,10 @@ class TimerView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TimerSerializer
 
     def get_object(self):
-        return get_object_or_404(
-            Timer.objects.filter(
-            run__id = self.kwargs['run_id'],
-            run__user= self.request.user
-        ), id=self.kwargs['timer_id'])
+        return get_object_or_404(Timer.objects.filter(
+            run__id=self.kwargs['run_id'],
+            run__user=self.request.user),
+            id=self.kwargs['timer_id'])
 
 
 class GameListView(generics.ListCreateAPIView):
@@ -164,7 +164,6 @@ class CreatePollSessionAPIView(generics.ListCreateAPIView):
     serializer_class = CreatePollSessionSerializer
     permission_classes = [AllowAny]
 
-
     def create(self, request, *args, **kwargs):
         session_id = str(uuid.uuid4().hex[:6])
         moderator_token = f'{session_id}-mod-{uuid.uuid4().hex[:6]}'
@@ -182,11 +181,11 @@ class CreatePollSessionAPIView(generics.ListCreateAPIView):
         r.set(f'poll:token_map:{overlay_token}', session_id, ex=86400)
 
         response_data = {
-                'moderator_url': f'/polls/m/{moderator_token}',
-                'viewer_url': f'/polls/v/{viewer_token}',
-                'overlay_url': f'/polls/o/{overlay_token}',
-                'session_id': session_id,
-            }
+            'moderator_url': f'/polls/m/{moderator_token}',
+            'viewer_url': f'/polls/v/{viewer_token}',
+            'overlay_url': f'/polls/o/{overlay_token}',
+            'session_id': session_id,
+        }
 
         serializer = self.get_serializer(response_data)
 
@@ -274,7 +273,6 @@ class DeletePollQuestionView(generics.DestroyAPIView):
 
         serializer = SuccessResponseSerializer({'detail': 'Question deleted'})
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 class MainDashboardView(TemplateView):
@@ -407,8 +405,9 @@ class RunExportView(APIView):
         wb.save(stream)
         stream.seek(0)
 
-        response = HttpResponse(stream.read(),
-                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(
+            stream.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename={filename}'
 
         return response

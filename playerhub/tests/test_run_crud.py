@@ -198,7 +198,8 @@ def test_export_wipecounter_excel(client):
     response = client.get(f'/api/runs/{run.id}/export/', {}, format='json')
 
     assert response.status_code == 200, 'Run was not exported'
-    assert response['Content-Type'] == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    assert (response['Content-Type']
+            == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     assert f'wipes_run_{run.id}.xlsx' in response['Content-Disposition']
 
 
@@ -216,7 +217,8 @@ def test_export_speedrun_excel(client):
     response = client.get(f'/api/runs/{run.id}/export/', {}, format='json')
 
     assert response.status_code == 200, 'Run was not exported'
-    assert response['Content-Type'] == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    assert (response['Content-Type']
+            == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     assert f'speedrun_run_{run.id}.xlsx' in response['Content-Disposition']
 
 

@@ -38,7 +38,8 @@ urlpatterns = [
          playerhub_views.PollQuestionsListView.as_view(), name='api-polls-list'),
     path('api/polls/m/<str:client_token>/delete/<str:question_id>/',
          playerhub_views.DeletePollQuestionView.as_view(), name='api-delete-poll-question'),
-    path('api/polls/v/<str:client_token>/', PollQuestionsListView.as_view(), name='api-viewer-polls'),
+    path('api/polls/v/<str:client_token>/',
+         PollQuestionsListView.as_view(), name='api-viewer-polls'),
 
     # API endpoints - user authorization
     path('api/register/', users_views.RegisterView.as_view(), name='api-register'),
@@ -50,7 +51,8 @@ urlpatterns = [
          users_views.PasswordResetConfirmView.as_view(), name='api-password-reset-confirm'),
 
     # Export Functions
-    path('api/runs/<int:run_id>/export/', playerhub_views.RunExportView.as_view(), name='run-export'),
+    path('api/runs/<int:run_id>/export/',
+         playerhub_views.RunExportView.as_view(), name='run-export'),
 
     # HTML views - user authorization
     path('login/', users_views.LoginPageView.as_view(), name='login'),
@@ -64,13 +66,18 @@ urlpatterns = [
     path('runs/create/', playerhub_views.CreateNewRunView.as_view(), name='runs-create'),
     path('runs/<int:run_id>/', playerhub_views.RunDashboardView.as_view(), name='runs-view'),
     path('runs/', playerhub_views.RunListDashboardView.as_view(), name='runs-list'),
-    path('overlay/runs/<int:run_id>/', playerhub_views.OverlayRunView.as_view(), name='overlay-run'),
-    path('overlay/runs/<int:run_id>/timer/', playerhub_views.OverlayTimerView.as_view(), name='overlay-timer'),
+    path('overlay/runs/<int:run_id>/',
+         playerhub_views.OverlayRunView.as_view(), name='overlay-run'),
+    path('overlay/runs/<int:run_id>/timer/',
+         playerhub_views.OverlayTimerView.as_view(), name='overlay-timer'),
 
     # HTML views - polls
-    path('polls/create/', playerhub_views.CreatePollSessionView.as_view(), name='polls-create'),
-    path('polls/m/<str:moderator_token>/', playerhub_views.ModeratorPollsView.as_view(), name='polls-moderator'),
-    path('polls/o/<str:overlay_token>/', playerhub_views.OverlayPollView.as_view(), name='polls-overlay'),
-    path('polls/v/<str:client_token>/', playerhub_views.ViewerPollView.as_view(), name='polls-viewer'),
-
+    path('polls/create/',
+         playerhub_views.CreatePollSessionView.as_view(), name='polls-create'),
+    path('polls/m/<str:moderator_token>/',
+         playerhub_views.ModeratorPollsView.as_view(), name='polls-moderator'),
+    path('polls/o/<str:overlay_token>/',
+         playerhub_views.OverlayPollView.as_view(), name='polls-overlay'),
+    path('polls/v/<str:client_token>/',
+         playerhub_views.ViewerPollView.as_view(), name='polls-viewer'),
 ]

@@ -1,6 +1,7 @@
 from rest_framework import generics
-from .serializers import CreateUserSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
-from django.contrib.auth.views import  TemplateView
+from .serializers import (CreateUserSerializer, PasswordResetRequestSerializer,
+                          PasswordResetConfirmSerializer)
+from django.contrib.auth.views import TemplateView
 from rest_framework.permissions import AllowAny
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -10,6 +11,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.core.mail import send_mail
+
 
 class RegisterView(generics.CreateAPIView):
     """

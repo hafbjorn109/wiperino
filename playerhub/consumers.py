@@ -189,7 +189,8 @@ class PollConsumer(AsyncWebsocketConsumer):
         message_type = data.get('type')
         print('[WS] Received data: ', data)
 
-        if message_type in ['publish_question', 'unpublish_question'] and '-mod' not in self.client_token:
+        if (message_type in ['publish_question', 'unpublish_question']
+                and '-mod' not in self.client_token):
             serializer = ph_serializers.WebSocketErrorSerializer({
                 'type': 'error',
                 'error': 'Only moderators can perform this action'
@@ -379,7 +380,7 @@ class PollConsumer(AsyncWebsocketConsumer):
                 )
 
         elif data.get('type') == 'delete_question' and '-mod' in self.client_token:
-            serializer = ph_serializers.DeleteQuestionSerializer(data= {
+            serializer = ph_serializers.DeleteQuestionSerializer(data={
                 'type': 'delete_question',
                 'question_id': data.get('question_id')
             })
@@ -399,30 +400,25 @@ class PollConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-
     async def publish_question(self, event):
         """Broadcasts a publishing trigger for a question to all group members."""
         serializer = ph_serializers.PublishedQuestionSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
-
 
     async def unpublish_question(self, event):
         """Broadcasts an unpublishing trigger for a question to all group members."""
         serializer = ph_serializers.UnpublishQuestionSerializer({'type': 'unpublish_question'})
         await self.send(text_data=json.dumps(serializer.data))
 
-
     async def vote_update(self, event):
         """Broadcasts a vote update for a question to all group members."""
         serializer = ph_serializers.VoteUpdateSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
 
-
     async def new_question(self, event):
         """Broadcasts a new question to all group members."""
         serializer = ph_serializers.NewQuestionSerializer(event['message'])
         await self.send(text_data=json.dumps(serializer.data))
-
 
     async def delete_question(self, event):
         """Broadcasts a delete question to all group members."""
@@ -487,11 +483,6 @@ class TimerConsumer(AsyncWebsocketConsumer):
 
         validated_data = serializer.validated_data
 
-        if message_type == 'run_finished':
-            print(f"[TIMER WS] Run {self.run_id} marked as finished by user {self.scope['user'].username}")
-
-        print(validated_data)
-
         payload = {
             'type': message_type,
             **validated_data,
@@ -505,7 +496,6 @@ class TimerConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_send(self.room_group_name, broadcast.data)
 
-
     async def start_timer(self, event):
         """
         Handles broadcasting of 'start_timer' events to the client.
@@ -513,7 +503,6 @@ class TimerConsumer(AsyncWebsocketConsumer):
         """
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
-
 
     async def pause_timer(self, event):
         """
@@ -523,7 +512,6 @@ class TimerConsumer(AsyncWebsocketConsumer):
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
 
-
     async def finish_timer(self, event):
         """
         Handles broadcasting of 'finish_timer' events to the client.
@@ -532,7 +520,6 @@ class TimerConsumer(AsyncWebsocketConsumer):
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
 
-
     async def run_finished(self, event):
         """
         Handles broadcasting of 'run_finished' events to overlay or other clients.
@@ -540,7 +527,6 @@ class TimerConsumer(AsyncWebsocketConsumer):
         """
         serializer = ph_serializers.TimerBroadcastSerializer(event)
         await self.send(text_data=json.dumps(serializer.data))
-
 
     async def new_segment(self, event):
         """

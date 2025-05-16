@@ -44,7 +44,6 @@ class WipeCounter(models.Model):
     count = models.IntegerField(default=0)
     is_finished = models.BooleanField(default=False)
 
-
     def __str__(self):
         return f'{self.run.name} | {self.segment_name}'
 
@@ -61,4 +60,3 @@ class Timer(models.Model):
 
     def __str__(self):
         return f'{self.run.name} | {self.segment_name}'
-

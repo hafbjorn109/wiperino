@@ -107,7 +107,8 @@ def test_password_reset_confirm(client):
     """
     Test that a user can reset their password with a valid token and uid.
     """
-    user = User.objects.create_user(username='resetuser', email='reset@mail.com', password='secretpass1234')
+    user = User.objects.create_user(
+        username='resetuser', email='reset@mail.com', password='secretpass1234')
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = PasswordResetTokenGenerator().make_token(user)
 

@@ -4,12 +4,14 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
+
 class CreateUserSerializer(serializers.ModelSerializer):
     """
       Serializer for registering a new user.
 
       Accepts username, email, and password.
-      Ensures password is write-only and creates the user using Django's built-in create_user method.
+      Ensures password is write-only and
+      creates the user using Django's built-in create_user method.
       """
     password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
