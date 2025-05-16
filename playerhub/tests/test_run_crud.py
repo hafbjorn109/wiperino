@@ -224,6 +224,10 @@ def test_export_speedrun_excel(client):
 
 @pytest.mark.django_db
 def test_export_foreign_run(client):
+    """
+    Test exporting a foreign run by another user.
+    Expected: 403 Forbidden
+    """
     run = RunFactory()
     user = UserFactory()
     client.force_authenticate(user=user)
@@ -233,6 +237,10 @@ def test_export_foreign_run(client):
 
 @pytest.mark.django_db
 def test_export_invalid_mode(client):
+    """
+    Test exporting a run with an invalid mode.
+    Expected: 400 Bad Request
+    """
     user = UserFactory()
     client.force_authenticate(user=user)
     game = GameFactory()
