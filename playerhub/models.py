@@ -30,6 +30,7 @@ class Run(models.Model):
     session_code = models.CharField(max_length=15, null=True, blank=True)
     moderator_session_code = models.CharField(max_length=15, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    youtube_link = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} | {self.game} | {self.mode}'

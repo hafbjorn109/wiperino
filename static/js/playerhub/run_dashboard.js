@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const runId = window.location.pathname.split('/')[2];
     const controllerSections = document.querySelectorAll('.form-section');
     const exportButton = document.getElementById('export-btn');
+    const ytGoButton = document.getElementById('yt-go-btn');
+    const ytLinkButton = document.getElementById('yt-link-btn');
 
     /**
      * Fetches details about a specific run for the logged-in user and displays them in the table.
@@ -39,11 +41,57 @@ document.addEventListener("DOMContentLoaded", async () => {
                });
             }
 
+            const ytLink = responseData.youtube_link;
+            if (typeof ytLink === 'string' && ytLink.trim() !== '') {
+                ytGoButton.href = ytLink;
+                ytGoButton.classList.remove('hidden');
+            } else {
+                ytGoButton.classList.add('hidden');
+                ytGoButton.removeAttribute('href');
+            }
+
         } catch (err) {
             console.error(err);
             alert('Something went wrong. Try again.');
         }
     }
+
+    /**
+     * Handles YouTube link PATCH
+     */
+    ytLinkButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const newLink = prompt('Enter YouTube link');
+        if (!newLink) return;
+
+        try {
+            const response = await fetch(`/api/runs/${runId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    youtube_link: newLink
+                })
+            })
+
+            if (!response.ok){
+                const errorData = await response.json();
+                const errorText = Object.values(errorData).flat().join(', ');
+                alert(`Error: ${errorText}`);
+                return;
+            }
+
+            ytGoButton.href = newLink;
+            ytGoButton.classList.remove('hidden');
+
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong. Try again.');
+        }
+    })
 
     /**
      * Handles creating URL to communication with API to generate XLSX file with run data.

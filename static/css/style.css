@@ -25,20 +25,6 @@ body {
   margin-top: 2rem;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #333;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  font-weight: bold;
-  width: 100%;
-  box-sizing: border-box;
-  transition: background 0.2s;
-}
-
 .btn-small {
   padding: 0.4rem 0.8rem;
   font-size: 0.875rem;
@@ -53,9 +39,6 @@ body {
 }
 
 .btn-small:hover {
-  background-color: #f2f2f2;
-}
-.btn:hover {
   background-color: #f2f2f2;
 }
 
@@ -135,7 +118,7 @@ body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 600px) {
@@ -401,34 +384,44 @@ body {
   text-align: left;
 }
 
-
-#forgot-password-form input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+a.btn,
+button.btn {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  font-weight: bold;
+  font-family: inherit;
   font-size: 1rem;
-  margin-bottom: 1rem;
+  width: 100%;
   box-sizing: border-box;
+  transition: background 0.2s;
+  display: block;
 }
 
-#reset-password-form input {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  box-sizing: border-box;
+a.btn:hover,
+button.btn:hover {
+  background-color: #f2f2f2;
 }
 
-.auth-form input[type="text"],
-.auth-form input[type="password"] {
+a.btn:focus,
+button.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="email"],
+form input[type="url"] {
   width: 100%;
   padding: 0.75rem;
-  font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
+  font-size: 1rem;
   margin-bottom: 1rem;
   box-sizing: border-box;
 }

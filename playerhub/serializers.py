@@ -23,6 +23,7 @@ class RunSerializer(serializers.ModelSerializer):
             'mode',
             'user',
             'is_finished',
+            'youtube_link'
         ]
         read_only_fields = ['id', 'user', 'game_name']
 
