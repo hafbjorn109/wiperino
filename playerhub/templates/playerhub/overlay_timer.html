@@ -1,0 +1,83 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wiperino Timer Overlay</title>
+    <style>
+        body {
+            background: transparent;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        #overlay {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #555;
+            text-align: left;
+        }
+
+        th {
+            font-weight: bold;
+            color: #ddd;
+        }
+
+        td {
+            color: #fff;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        th:nth-child(1), td:nth-child(1) {
+            width: 70%;
+        }
+
+        th:nth-child(2), td:nth-child(2) {
+            width: 30%;
+            text-align: right;
+        }
+
+        #overall-time {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay">
+        <h2 id="game-title"></h2>
+        <h3 id="run-name"></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Segment</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="segments"></tbody>
+            <tbody>
+                <tr>
+                    <td>Overall</td>
+                    <td id="overall-time">0.0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p id="run-status"></p>
+    </div>
+
+    <script src="{% static 'js/playerhub/overlay_timer.js' %}"></script>
+</body>
+</html>

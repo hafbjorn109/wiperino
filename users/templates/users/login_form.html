@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="dashboard">
+    <h1>Login</h1>
+
+    <div class="section">
+      <form id="login-form" class="auth-form">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button class="btn" type="submit">Log in</button>
+      </form>
+
+      <div id="error-msg" style="color: red; margin-top: 10px;"></div>
+
+      <a href="/register/" class="btn">Create Account</a>
+      <a href="/forgot-password/" class="btn">Change Password</a>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block scripts %}
+  <script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

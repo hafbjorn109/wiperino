@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="dashboard">
+    <h1>Wiperino</h1>
+
+    <div class="section">
+      <a href="{% url 'runs-create' %}" class="btn">New Run</a>
+      <a href="{% url 'runs-list' %}" class="btn">My Runs</a>
+      <a href="{% url 'polls-create' %}" class="btn">Create Poll Session</a>
+    </div>
+    <button id="logout-btn" class="btn logout">Logout</button>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/auth.js' %}"></script>
+<script src="{% static 'js/logout.js' %}"></script>
+{% endblock %}

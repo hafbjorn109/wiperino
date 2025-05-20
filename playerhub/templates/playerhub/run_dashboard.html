@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="dashboard">
+  <h1>Wiperino</h1>
+  <h2 id="run-info"></h2>
+  <h2 id="game-info"></h2>
+
+  {% if run.mode == "WIPECOUNTER" %}
+    {% include "playerhub/wipecounter_dashboard.html" %}
+  {% elif run.mode == "SPEEDRUN" %}
+    {% include "playerhub/speedrun_dashboard.html" %}
+  {% endif %}
+
+<div class="section">
+  <button type="button" id="export-btn" class="btn">Export to Excel</button>
+  <button type="button" id="yt-link-btn" class="btn">Add YT Link</button>
+  <a href="#" id="yt-go-btn" class="btn hidden" target="_blank" rel="noopener">Go to YouTube</a>
+  <a href="{% url 'main-dashboard' %}" class="btn">Main Menu</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if run.mode == "WIPECOUNTER" %}
+<script src="{% static 'js/playerhub/run_wipecounter.js' %}"></script>
+{% elif run.mode == "SPEEDRUN" %}
+<script src="{% static 'js/playerhub/run_speedrun.js' %}"></script>
+{% endif %}
+<script src="{% static 'js/playerhub/run_dashboard.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}

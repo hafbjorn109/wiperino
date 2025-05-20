@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="dashboard">
+    <h1>Wiperino</h1>
+    <h2>New Run</h2>
+    <form class="form-section">
+        <label for="run-name">Run Name:</label>
+        <input type="text" id="run-name" placeholder="Run Name" required>
+
+        <label for="game-select">Choose a game:</label>
+        <select name="game" id="game-select">
+        </select>
+        <label for="add-game-btn">Or if you don't see your game on the list:</label>
+        <button type="button" id="add-game-btn">Add New Game</button>
+        <div id="add-game-section" class="hidden">
+            <label for="new-game-input">Enter name and save: </label>
+            <input type="text" id="new-game-input" placeholder="Game Name">
+            <button type="button" id="new-game-save-btn">Add to list</button>
+        </div>
+
+        <label for="mode-select">Tracker Mode:</label>
+        <select name="mode" id="mode-select">
+            <option value="WIPECOUNTER"> Wipe Counter</option>
+            <option value="SPEEDRUN">Speedrun Timer</option>
+        </select>
+
+        <button class="create-btn">Create Run</button>
+    </form>
+    <div class="form-section">
+        <button type="button" class="btn back-btn" onclick="window.location.href='/dashboard'">
+            Back to Main Menu
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/playerhub/create_new_run.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}

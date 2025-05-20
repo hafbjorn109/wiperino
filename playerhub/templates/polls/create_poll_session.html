@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <div class="dashboard">
+    <h2>Create Poll Session</h2>
+    <div class="form-section">
+      <button id="create-poll-btn" class="btn">
+        Generate Session
+      </button>
+    </div>
+    <div id="links" class="form-section hidden">
+      <label for="moderator-url">Moderator URL</label>
+        <input id="moderator-url" readonly>
+
+        <label for="viewer-url">Viewer URL</label>
+        <input id="viewer-url" readonly>
+
+        <label for="overlay-url">Overlay URL</label>
+        <input id="overlay-url" readonly>
+    </div>
+    <div class="form-section">
+      <a href="{% url 'main-dashboard' %}" class="btn">Main Menu</a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/polls/create_poll_session.js' %}"></script>
+{% endblock %}

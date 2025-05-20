@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="dashboard">
+        <h1>Wiperino</h1>
+        <h2>My Runs</h2>
+        <table class="run-list-table">
+            <thead class="run-list-header">
+            <tr>
+                <th>Run Name</th>
+                <th>Game</th>
+                <th>Mode</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody class="run-list-body">
+            </tbody>
+        </table>
+
+        <div class="section">
+        <a href="{% url 'runs-create' %}" class="btn">Create New Run</a>
+        <a href="{% url 'main-dashboard' %}" class="btn">Main Menu</a>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/playerhub/run_list.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}

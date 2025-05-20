@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="dashboard">
+    <div class="form-section">
+        <label for="question-text">Question:</label>
+        <input id="question-text" type="text" placeholder="Ask Question">
+
+        <div id="answers-wrapper">
+            <input class="answer-input" type="text" placeholder="Answer 1">
+            <input class="answer-input" type="text" placeholder="Answer 2">
+        </div>
+        <div class="button-container">
+            <button id="add-answer" class="btn-small">Add Answer Option</button>
+            <button id="submit-question" class="btn">Submit Question</button>
+        </div>
+    </div>
+    <hr>
+
+    <h2>Questions</h2>
+    <div id="polls" class="form-section"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/polls/polls_moderator.js' %}"></script>
+{% endblock %}
