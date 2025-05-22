@@ -413,30 +413,3 @@ class NewTimerSegmentSerializer(serializers.Serializer):
         if not value.strip():
             raise serializers.ValidationError("Segment name cannot be empty.")
         return value
-
-
-class WipeCounterIncomingMessageSerializer(serializers.Serializer):
-    """
-    Input serializer to verify entry data for WipeCounterConsumer.
-    """
-    type = serializers.ChoiceField(choices=[
-        'wipe_update', 'new_segment', 'segment_finished', 'run_finished',
-    ])
-
-
-class TimerIncomingMessageSerializer(serializers.Serializer):
-    """
-    Input serializer to verify entry data for TimerConsumer.
-    """
-    type = serializers.ChoiceField(choices=[
-        'start_timer', 'pause_timer', 'finish_timer', 'run_finished', 'new_segment',
-    ])
-
-
-class PollIncomingMessageSerializer(serializers.Serializer):
-    """
-    Input serializer to verify entry data for PollConsumer.
-    """
-    type = serializers.ChoiceField(choices=[
-        'vote', 'sync_questions', 'delete_question', 'publish_question', 'unpublish_question',
-    ])

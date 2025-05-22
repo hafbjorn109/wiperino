@@ -40,7 +40,16 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         Handles incoming messages from the client and dispatches them to the group.
         Supports wipe updates, segment creation, finishing segments, and finishing runs.
         """
-        data = json.loads(text_data)
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'message': 'Wrong JSON format'
+            })
+            await self.send(text_data=error_serializer.data)
+            return
+
         message_type = data.get('type')
 
         serializer_map = {
@@ -185,8 +194,16 @@ class PollConsumer(AsyncWebsocketConsumer):
         Handles incoming messages from the client and dispatches them to the group.
         Supports publishing a question and unpublishing a question to OBS overlay and votes view.
         """
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'error': 'Wrong JSON format'
+            })
+            await self.send(text_data=json.dumps(error_serializer.data))
+            return
 
-        data = json.loads(text_data)
         message_type = data.get('type')
 
         if (message_type in ['publish_question', 'unpublish_question']
@@ -446,7 +463,16 @@ class TimerConsumer(AsyncWebsocketConsumer):
         serializer (based on message 'type'), and broadcasts structured payload
         to all group members using a broadcast serializer.
         """
-        data = json.loads(text_data)
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            error_serializer = ph_serializers.WebSocketErrorSerializer({
+                'type': 'error',
+                'error': 'Invalid JSON format'
+            })
+            await self.send(text_data=json.dumps(error_serializer.data))
+            return
+
         message_type = data.get('type')
 
         input_serializer_map = {
