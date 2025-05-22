@@ -109,31 +109,57 @@ Use the overlay URLs as **Browser Sources** in OBS:
 
 * `POST /api/login/` – obtain JWT
 * `POST /api/register/` – create user
+* `POST /api/password-reset-request/` – request password reset
+* `POST /api/password-reset-confirm/` – confirm password reset
 
 ### 🧩 Runs:
 
 * `GET /api/runs/` – list user runs
-* `POST /api/runs/` – create run
-* `GET/PUT/DELETE /api/runs/<id>/` – manage a single run
+* `POST /api/runs/` – create a new run
+* `GET /api/runs/<id>/` – retrieve run details
+* `PUT /api/runs/<id>/` – update a run
+* `DELETE /api/runs/<id>/` – delete a run
 
-### 🧮 Wipe Counters / Timers:
+### 🎮 Games:
 
-* `POST /api/runs/<id>/wipecounters/` – add wipe counter
-* `POST /api/runs/<id>/timers/` – add timer
-* Similar routes for retrieve/update/delete
+* `GET /api/games/` – list all available games
+* `POST /api/games/` – create a new game
+* `GET /api/games/<id>/` – retrieve game details
+* `PUT /api/games/<id>/` – update a game
+* `DELETE /api/games/<id>/` – delete a game
+
+### 🧮 Wipe Counters:
+
+* `GET /api/runs/<run_id>/wipecounters/` – list wipe counters for a run
+* `POST /api/runs/<run_id>/wipecounters/` – add a new wipe counter
+* `GET /api/runs/<run_id>/wipecounters/<wipecounter_id>/` – retrieve wipe counter details
+* `PUT /api/runs/<run_id>/wipecounters/<wipecounter_id>/` – update a wipe counter
+* `DELETE /api/runs/<run_id>/wipecounters/<wipecounter_id>/` – delete a wipe counter
+
+### ⏱️ Timers:
+
+* `GET /api/runs/<run_id>/timers/` – list timers for a run
+* `POST /api/runs/<run_id>/timers/` – add a new timer
+* `GET /api/runs/<run_id>/timers/<timer_id>/` – retrieve timer details
+* `PUT /api/runs/<run_id>/timers/<timer_id>/` – update a timer
+* `DELETE /api/runs/<run_id>/timers/<timer_id>/` – delete a timer
 
 ### 📊 Polls:
 
-* `POST /api/polls/create_session/` – create new poll session
-* `POST /api/polls/m/<token>/add_poll/` – add question
-* `GET /api/polls/m/<token>/` – list questions
-* `DELETE /api/polls/m/<token>/delete/<question_id>/` – delete question
+* `POST /api/polls/create_session/` – create a new poll session
+* `GET /api/polls/m/<token>/` – list questions in a poll (moderator)
+* `POST /api/polls/m/<token>/` – add a new question to poll (moderator)
+* `DELETE /api/polls/m/<token>/delete/<question_id>/` – delete a question (moderator)
+* `GET /api/polls/v/<token>/` – view questions as a viewer
 
 ### 🌐 WebSocket Routes:
 
-* `ws/runs/<run_id>/` – wipe/timer dashboard communication
-* `ws/overlay/runs/<run_id>/` – OBS overlay sync
-* `ws/polls/<token>/` – poll control, overlay, voting
+* `ws/runs/<run_id>/` – dashboard for wipe counter
+* `ws/runs/<run_id>/timer/` – dashboard for timer mode
+* `ws/overlay/runs/<run_id>/` – OBS overlay for wipe counter
+* `ws/overlay/runs/<run_id>/timer/` – OBS overlay for timer mode
+* `ws/polls/<client_token>/` – poll communication (moderator, viewer, overlay)
+
 
 ### 📂 Export & Public Views For Overlays:
 * `GET /api/runs/<id>/export/` – download run data as `.xlsx`

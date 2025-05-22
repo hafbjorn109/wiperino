@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: 'rgba(75, 192, 192, 0.7)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1,
-                    barThickness: 60,
                 }]
             },
             options: {
@@ -73,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 responsive: true,
                 maintainAspectRatio: false,
-                categoryPercentage: 0.5,
+                categoryPercentage: 0.9,
                 barPercentage: 0.8
             },
             plugins: [ChartDataLabels]
