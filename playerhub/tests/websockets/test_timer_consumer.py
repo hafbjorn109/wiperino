@@ -202,3 +202,24 @@ async def test_ws_timer_new_segment():
 
     await communicator_1.disconnect()
     await communicator_2.disconnect()
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db
+async def test_timer_wrong_data():
+    """
+    Test to ensure that wrong data format is handled correctly.
+    """
+    user = await sync_to_async(UserFactory)()
+    game = await sync_to_async(GameFactory)()
+    run = await sync_to_async(RunFactory)(user=user, game=game, mode='SPEEDRUN')
+    token = str(AccessToken.for_user(user))
+
+    ws_url = f'ws/runs/{run.id}/timer/?token={token}'
+
+    communicator = WebsocketCommunicator(application, ws_url)
+    connected, _ = await communicator.connect()
+
+    await communicator.send_to('{not:valid json}')
+    response = await communicator.receive_json_from()
+    assert response['type'] == 'error', 'Wrong response type.'
