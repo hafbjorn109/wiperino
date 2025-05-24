@@ -152,8 +152,8 @@ async def test_wipecounter_broadcast_run_finished():
     communicator_1 = WebsocketCommunicator(application, ws_url)
     communicator_2 = WebsocketCommunicator(application, ws_url)
 
-    connected, _ = await communicator_1.connect()
-    connected, _ = await communicator_2.connect()
+    connected1, _ = await communicator_1.connect()
+    connected2, _ = await communicator_2.connect()
 
     await communicator_1.send_json_to({
         'type': 'run_finished',
