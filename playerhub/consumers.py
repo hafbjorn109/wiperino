@@ -43,11 +43,11 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
-                'message': 'Wrong JSON format'
+                'error': 'Wrong JSON format'
             })
-            await self.send(text_data=error_serializer.data)
+            await self.send(text_data=json.dumps(error_serializer.data))
             return
 
         message_type = data.get('type')
@@ -61,7 +61,7 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
 
         serializer_class = serializer_map.get(message_type)
         if not serializer_class:
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
                 'error': 'Invalid message type'
             })
@@ -70,7 +70,7 @@ class WipecounterConsumer(AsyncWebsocketConsumer):
 
         serializer = serializer_class(data=data)
         if not serializer.is_valid():
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
                 'error': serializer.errors
             })
@@ -197,7 +197,7 @@ class PollConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
                 'error': 'Wrong JSON format'
             })
@@ -264,7 +264,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             serializer = ph_serializers.PublishedQuestionSerializer(data=message_payload)
 
             if not serializer.is_valid():
-                error_serializer = ph_serializers.WebSocketErrorSerializer({
+                error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                     'type': 'error',
                     'error': serializer.errors
                 })
@@ -304,7 +304,7 @@ class PollConsumer(AsyncWebsocketConsumer):
         elif data.get('type') == 'vote':
             serializer = ph_serializers.PollVoteSerializer(data=data)
             if not serializer.is_valid():
-                error_serializer = ph_serializers.WebSocketErrorSerializer({
+                error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                     'type': 'error',
                     'error': serializer.errors
                 })
@@ -351,7 +351,7 @@ class PollConsumer(AsyncWebsocketConsumer):
 
             out_serializer = ph_serializers.VoteUpdateSerializer(data=vote_data)
             if not out_serializer.is_valid():
-                error_serializer = ph_serializers.WebSocketErrorSerializer({
+                error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                     'type': 'error',
                     'error': out_serializer.errors
                 })
@@ -371,7 +371,7 @@ class PollConsumer(AsyncWebsocketConsumer):
             for qid in questions_ids:
                 q_raw = r.get(f'poll:question:{qid}')
                 if not q_raw:
-                    error_serializer = ph_serializers.WebSocketErrorSerializer({
+                    error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                         'type': 'error',
                         'error': 'Question not found'
                     })
@@ -397,7 +397,7 @@ class PollConsumer(AsyncWebsocketConsumer):
                 'question_id': data.get('question_id')
             })
             if not serializer.is_valid():
-                error_serializer = ph_serializers.WebSocketErrorSerializer({
+                error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                     'type': 'error',
                     'error': serializer.errors
                 })
@@ -466,7 +466,7 @@ class TimerConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
                 'error': 'Invalid JSON format'
             })
@@ -485,7 +485,7 @@ class TimerConsumer(AsyncWebsocketConsumer):
 
         serializer_class = input_serializer_map.get(message_type)
         if not serializer_class:
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
                 'error': 'Invalid message type'
             })
@@ -494,7 +494,7 @@ class TimerConsumer(AsyncWebsocketConsumer):
 
         serializer = serializer_class(data=data)
         if not serializer.is_valid():
-            error_serializer = ph_serializers.WebSocketErrorSerializer({
+            error_serializer = ph_serializers.WebSocketErrorSerializer(instance={
                 'type': 'error',
                 'error': serializer.errors
             })
