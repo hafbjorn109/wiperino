@@ -185,3 +185,4 @@ async def test_wipecounter_wrong_data():
     await communicator.send_to('{not:valid json}')
     response = await communicator.receive_json_from()
     assert response['type'] == 'error', 'Wrong response type.'
+    await communicator.disconnect()
