@@ -1,5 +1,4 @@
 from datetime import datetime
-
 import pytest
 from channels.testing import WebsocketCommunicator
 from wiperino.asgi import application
