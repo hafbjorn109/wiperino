@@ -315,6 +315,13 @@ class PollConsumer(AsyncWebsocketConsumer):
             validated_data = serializer.validated_data
             question_id = validated_data['question_id']
             answer = validated_data['answer']
+            session_key = f'poll:session:{self.session_id}'
+            session_data_raw = await sync_to_async(r.get)(session_key)
+            session_data = json.loads(session_data_raw)
+            published_question = session_data['published_question_id']
+            is_published = False
+            if published_question == question_id:
+                is_published = True
 
             question_data_raw = await sync_to_async(r.get)(f'poll:question:{question_id}')
 
@@ -346,7 +353,8 @@ class PollConsumer(AsyncWebsocketConsumer):
                 'type': 'vote',
                 'question_id': question_id,
                 'answers': question['answers'],
-                'votes': question['votes']
+                'votes': question['votes'],
+                'is_published': is_published
             }
 
             out_serializer = ph_serializers.VoteUpdateSerializer(data=vote_data)

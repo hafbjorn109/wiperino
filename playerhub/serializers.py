@@ -212,6 +212,7 @@ class VoteUpdateSerializer(serializers.Serializer):
     question_id = serializers.CharField(max_length=100)
     answers = serializers.ListField(child=serializers.CharField(max_length=100))
     votes = serializers.DictField(child=serializers.IntegerField(min_value=0))
+    is_published = serializers.BooleanField(required=False)
 
     def validate_question_id(self, value):
         if not value.strip():

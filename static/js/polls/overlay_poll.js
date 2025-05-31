@@ -113,7 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (data.type === 'vote') {
-                renderChart(data);
+                console.log(data.is_published)
+                if (data.is_published){
+                    console.log('rendering data')
+                    renderChart(data);
+                }
             }
         } catch (err) {
             console.error(err);
