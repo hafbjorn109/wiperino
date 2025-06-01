@@ -128,7 +128,9 @@ async def test_ws_poll_vote_update_broadcast():
 
     await sync_to_async(r.set)(f'poll:token_map:{client_token}', session_id)
     await sync_to_async(r.set)(f'poll:question:{question_id}', json.dumps(question_data))
-    await sync_to_async(r.set)(f'poll:session:{session_id}', json.dumps({}))
+    await sync_to_async(r.set)(f'poll:session:{session_id}', json.dumps({
+        'published_question_id': question_id
+    }))
 
     communicator = WebsocketCommunicator(
         application,
@@ -140,7 +142,7 @@ async def test_ws_poll_vote_update_broadcast():
     await communicator.send_json_to({
         'type': 'vote',
         'question_id': question_id,
-        'answer': 'Yes'
+        'answer': 'Yes',
     })
 
     response = await communicator.receive_json_from()
