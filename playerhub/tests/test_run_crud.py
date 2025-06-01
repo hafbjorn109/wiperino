@@ -20,8 +20,6 @@ def test_add_run(client):
         'mode': 'SPEEDRUN',
         'is_finished': False,
     }
-    print(data)
-    print(game.id)
     response = client.post('/api/runs/', data, format='json')
     assert response.status_code == 201, 'Run was not created'
     assert Run.objects.count() == runs_count + 1, 'Run was not created'
@@ -35,9 +33,10 @@ def test_not_logged_in_user_add_run(client):
     Sends a POST request without authentication.
     Expects a 403 Forbidden response.
     """
+    game = GameFactory()
     data = {
         'name': 'Test Run',
-        'game': 'Test Game',
+        'game': game.id,
         'mode': 'SPEEDRUN',
         'is_finished': False,
     }

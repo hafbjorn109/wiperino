@@ -105,9 +105,6 @@ def test_delete_poll_question(client):
 
     response = client.delete(f'/api/polls/m/{client_token}/delete/{question_id}/')
     assert response.status_code == 200, 'Question was not deleted'
-
-    print("Response code:", response.status_code)
-    print("Remaining keys:", r.keys(f'poll:*{question_id}*'))
     assert r.get(f'poll:question:{question_id}') is None, \
         'Question was not deleted from Redis'
     assert question_id not in r.lrange(

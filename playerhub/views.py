@@ -28,7 +28,7 @@ class RunListView(generics.ListCreateAPIView):
     serializer_class = RunSerializer
 
     def get_queryset(self):
-        return Run.objects.filter(user=self.request.user).order_by('id')
+        return Run.objects.filter(user=self.request.user).order_by('pk')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -42,7 +42,7 @@ class RunView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RunSerializer
 
     def get_queryset(self):
-        return Run.objects.filter(user=self.request.user).order_by('id')
+        return Run.objects.filter(user=self.request.user).order_by('pk')
 
 
 class PublicRunView(generics.RetrieveAPIView):
@@ -62,7 +62,7 @@ class PublicWipecounterListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id=self.kwargs['run_id']).order_by('id')
+        return WipeCounter.objects.filter(run__pk=self.kwargs['run_id']).order_by('pk')
 
 
 class WipeCounterListView(generics.ListCreateAPIView):
@@ -73,11 +73,11 @@ class WipeCounterListView(generics.ListCreateAPIView):
     serializer_class = WipeCounterSerializer
 
     def get_queryset(self):
-        return WipeCounter.objects.filter(run__id=self.kwargs['run_id'],
-                                          run__user=self.request.user).order_by('id')
+        return WipeCounter.objects.filter(run__pk=self.kwargs['run_id'],
+                                          run__user=self.request.user).order_by('pk')
 
     def perform_create(self, serializer):
-        run = get_object_or_404(Run, id=self.kwargs['run_id'], user=self.request.user)
+        run = get_object_or_404(Run, pk=self.kwargs['run_id'], user=self.request.user)
         serializer.save(run=run)
 
 
@@ -91,8 +91,8 @@ class WipeCounterView(generics.RetrieveUpdateDestroyAPIView):
     def get_object(self):
         return get_object_or_404(
             WipeCounter.objects.filter(
-                run__id=self.kwargs['run_id'], run__user=self.request.user),
-            id=self.kwargs['wipecounter_id'])
+                run__pk=self.kwargs['run_id'], run__user=self.request.user),
+            pk=self.kwargs['wipecounter_id'])
 
 
 class TimerListView(generics.ListCreateAPIView):
@@ -104,11 +104,11 @@ class TimerListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return Timer.objects.filter(
-            run__id=self.kwargs['run_id'],
+            run__pk=self.kwargs['run_id'],
             run__user=self.request.user)
 
     def perform_create(self, serializer):
-        run = get_object_or_404(Run, id=self.kwargs['run_id'], user=self.request.user)
+        run = get_object_or_404(Run, pk=self.kwargs['run_id'], user=self.request.user)
         serializer.save(run=run)
 
 
@@ -120,7 +120,7 @@ class PublicTimerListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return Timer.objects.filter(run__id=self.kwargs['run_id']).order_by('id')
+        return Timer.objects.filter(run__pk=self.kwargs['run_id']).order_by('pk')
 
 
 class TimerView(generics.RetrieveUpdateDestroyAPIView):
@@ -132,9 +132,9 @@ class TimerView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return get_object_or_404(Timer.objects.filter(
-            run__id=self.kwargs['run_id'],
+            run__pk=self.kwargs['run_id'],
             run__user=self.request.user),
-            id=self.kwargs['timer_id'])
+            pk=self.kwargs['timer_id'])
 
 
 class GameListView(generics.ListCreateAPIView):
@@ -154,7 +154,7 @@ class GameView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = GameSerializer
 
     def get_object(self):
-        return get_object_or_404(Game, id=self.kwargs['game_id'])
+        return get_object_or_404(Game, pk=self.kwargs['game_id'])
 
 
 class CreatePollSessionAPIView(generics.ListCreateAPIView):
@@ -300,7 +300,7 @@ class RunDashboardView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['run'] = get_object_or_404(Run, id=self.kwargs['run_id'])
+        context['run'] = get_object_or_404(Run, pk=self.kwargs['run_id'])
         return context
 
 
@@ -361,7 +361,7 @@ class RunExportView(APIView):
 
     def get(self, request, run_id):
         try:
-            run = Run.objects.get(id=run_id)
+            run = Run.objects.get(pk=run_id)
         except Run.DoesNotExist:
             return Response({'detail': 'Run not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -378,7 +378,7 @@ class RunExportView(APIView):
             ws.append([f'{run.name}'])
             ws.append(['Segment', 'Wipes'])
             total = 0
-            for seg in WipeCounter.objects.filter(run=run).order_by('id'):
+            for seg in WipeCounter.objects.filter(run=run).order_by('pk'):
                 ws.append([seg.segment_name, seg.count])
                 total += seg.count
             ws.append([])
@@ -391,7 +391,7 @@ class RunExportView(APIView):
             ws.append([f'{run.name}'])
             ws.append(['Segment', 'Time (s)'])
             total = 0.0
-            for seg in Timer.objects.filter(run=run).order_by('id'):
+            for seg in Timer.objects.filter(run=run).order_by('pk'):
                 ws.append([seg.segment_name, round(seg.elapsed_time, 2),])
                 total += seg.elapsed_time or 0.0
             ws.append([])
